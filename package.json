@@ -1,0 +1,24 @@
+{
+  "name": "hexo-tag-cloud",
+  "version": "1.0.0",
+  "description": "a tag cloud plugin for hexo",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/MikeCoder/hexo-tag-cloud.git"
+  },
+  "keywords": [
+    "tag",
+    "cloud",
+    "hexo"
+  ],
+  "author": "mike",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/MikeCoder/hexo-tag-cloud/issues"
+  },
+  "homepage": "https://github.com/MikeCoder/hexo-tag-cloud#readme"
+}
