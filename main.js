@@ -1,6 +1,5 @@
 'use strict';
 
-var util = require('hexo-util');
 var fs = require('hexo-fs');
 var pathFn = require('path');
 var Hexo = require('hexo');
