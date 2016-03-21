@@ -8,6 +8,10 @@ hexo.on('exit', function(post) {
     fs.listDir(pathFn.join(hexo.public_dir, 'tags')).then(function(files) {
         var tags = {}
         for (var idx in files) {
+            if (!(Object.prototype.toString.call(files[idx]) === "[object String]")) {
+                continue;
+            }
+
             var tagName = files[idx].substr(0, files[idx].indexOf('/'));
             if (tags[tagName]) {
                 tags[tagName] = tags[tagName] + 1;
