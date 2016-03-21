@@ -7,7 +7,7 @@
 And you can see online live demo by clicking [here](http://mikecoder.github.io)
 
 ##How to use
-1. go into your hexo system folder, and add depandence `"hexo-tag-cloud": ">1.0.0"` to `package.json`
+1. go into your hexo system folder, and add depandence `"hexo-tag-cloud": "1.0.*"` to `package.json`
 2. then do *npm install* command
 3. then you need to change your theme layout file
 4. for example, in its default theme landscape, we should find `hexo/themes/landscape/layout/_widget/tagcloud.ejs`
@@ -24,6 +24,7 @@ And you can see online live demo by clicking [here](http://mikecoder.github.io)
             quality="high" wmode="transparent" allowscriptaccess="always"
             flashvars="tcolor=0xbd1016&amp;tcolor2=0x808080&amp;hicolor=0x0065ff&amp;tspeed=100&amp;distr=true"
             height="100%" width="100%">
+        </embed>
     </div>
   </div>
 <% } %>
