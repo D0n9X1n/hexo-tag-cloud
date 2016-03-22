@@ -2,7 +2,7 @@
 
 [![npm version](https://badge.fury.io/js/hexo-tag-cloud.svg)](https://badge.fury.io/js/hexo-tag-cloud)
 
-Tag Cloud for Hexo.
+Tag Cloud for Hexo
 
 
 
