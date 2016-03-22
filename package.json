@@ -72,7 +72,7 @@
   ],
   "name": "hexo-tag-cloud",
   "optionalDependencies": {},
-  "readme": "ERROR: No README data found!",
+  "readmeFilename": "README.md",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/MikeCoder/hexo-tag-cloud.git"
