@@ -1,5 +1,7 @@
 #Hexo Tag Cloud
 
+[![npm version](https://badge.fury.io/js/hexo-tag-cloud.svg)](https://badge.fury.io/js/hexo-tag-cloud)
+
 
 ##How it looks like
 ![TagCloud](http://chuantu.biz/t2/33/1458566883x1822613129.png)
@@ -7,11 +9,11 @@
 And you can see online live demo by clicking [here](http://mikecoder.github.io)
 
 ##How to use
-1. go into your hexo system folder, and add depandence `"hexo-tag-cloud": "1.0.*"` to `package.json`
-2. then do *npm install* command
-3. then you need to change your theme layout file
-4. for example, in its default theme landscape, we should find `hexo/themes/landscape/layout/_widget/tagcloud.ejs`
-5. then we change the file to the following code:
++ go into your hexo system folder, and add depandence `"hexo-tag-cloud": "1.0.*"` to `package.json`
++ then do *npm install* command
++ then you need to change your theme layout file
++ for example, in its default theme landscape, we should find `hexo/themes/landscape/layout/_widget/tagcloud.ejs`
++ then we change the file to the following code:
 ```
 <% if (site.tags.length){ %>
   <div class="widget-wrap">
@@ -29,7 +31,7 @@ And you can see online live demo by clicking [here](http://mikecoder.github.io)
   </div>
 <% } %>
 ```
-6. then we have finished the plugin install and configuration. And you can write and deploy as usual, it will create tagcloud auto. Enjoy your hexo.
++ then we have finished the plugin install and configuration. And you can write and deploy as usual, it will create tagcloud auto. Enjoy your hexo.
 
 ##Troubleshooting
 Submit issue please
