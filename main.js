@@ -12,6 +12,10 @@ hexo.on('exit', function(post) {
                 continue;
             }
 
+            if (files[idx].indexOf('/') < 1) {
+                continue;
+            }
+
             var tagName = files[idx].substr(0, files[idx].indexOf('/'));
             if (tags[tagName]) {
                 tags[tagName] = tags[tagName] + 1;
