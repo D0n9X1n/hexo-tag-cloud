@@ -1,10 +1,9 @@
 #Hexo Tag Cloud
 
 [![npm version](https://badge.fury.io/js/hexo-tag-cloud.svg)](https://badge.fury.io/js/hexo-tag-cloud)
+[中文说明版本](./README.CN.md)
 
 Tag Cloud for Hexo
-
-
 
 ##How it looks like
 ![TagCloud](http://chuantu.biz/t2/33/1458566883x1822613129.png)
@@ -35,6 +34,9 @@ And you can see online live demo by clicking [here](http://mikecoder.github.io)
 <% } %>
 ```
 + then we have finished the plugin install and configuration. And you can write and deploy as usual, it will create tagcloud auto. Enjoy your hexo.
+
+##IMPORTANT
+Please don't use chinese to name a tag
 
 ##Troubleshooting
 Submit issue please

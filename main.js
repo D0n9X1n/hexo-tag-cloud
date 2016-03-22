@@ -6,6 +6,7 @@ var Hexo = require('hexo');
 
 hexo.on('exit', function(post) {
     fs.listDir(pathFn.join(hexo.public_dir, 'tags')).then(function(files) {
+        console.log("generating tagcloud.xml");
         var tags = {}
         for (var idx in files) {
             if (!(Object.prototype.toString.call(files[idx]) === "[object String]")) {
@@ -32,14 +33,15 @@ hexo.on('exit', function(post) {
         }
         content += '</tags>';
         fs.writeFile(pathFn.join(hexo.public_dir, 'tagcloud.xml'), content);
+        console.log("generating tagcloud.xml is ok");
 
         var cloudPath = pathFn.join(pathFn.join(pathFn.join(hexo.base_dir, 'node_modules'), 'hexo-tag-cloud'), 'tagcloud.swf');
         fs.exists(pathFn.join(hexo.public_dir, 'tagcloud.swf')).then(function (res) {
             if (!res) {
                 fs.readFile(cloudPath).then(function(content) {
-                    console.log(res);
-                    console.log(content.length);
+                    console.log("copying tagcloud.swf");
                     fs.copyFile(cloudPath, pathFn.join(hexo.public_dir, 'tagcloud.swf'));
+                    console.log("copying tagcloud.swf is ok");
                 });
             }
         })
