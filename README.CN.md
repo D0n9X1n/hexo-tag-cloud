@@ -63,3 +63,30 @@
 2. 然后就是一个 Live Demo:
 > 请点击这个链接:[mikecoder.github.io](http://mikecoder.github.io)
 
+####自定义
+如果你想修改标签的背景和字体颜色，请注意看这里:
+```
+<% if (site.tags.length){ %>
+  <div class="widget-wrap">
+    <h3 class="widget-title"><%= __('tagcloud') %></h3>
+    <div class="widget tagcloud">
+        <embed tplayername="SWF" splayername="SWF"
+            type="application/x-shockwave-flash" src="tagcloud.swf"
+            mediawrapchecked="true" pluginspage="http://www.macromedia.com/go/getflashplayer"
+            id="tagcloudflash" name="tagcloudflash" bgcolor="#f3f3f3"
+            quality="high" wmode="transparent" allowscriptaccess="always"
+            flashvars="tcolor=0x2CA6CB&amp;tcolor2=0x808080&amp;hicolor=0x1A4666&amp;tspeed=100&amp;distr=true"
+            height="100%" width="100%">
+        </embed>
+    </div>
+  </div>
+<% } %>
+```
+bgcolor: 这就是背景色的颜色
+我们可以修改 flashvars 来修改字体颜色
++ tcolor: 标签基本颜色, 用 0xffffff 而不是 #ffffff or ffffff
++ tcolor2: 标签的渐变色
++ hicolor: 标签的高亮色
++ tspeed: 标签云转速
++ distr: 背景是否透明
+
