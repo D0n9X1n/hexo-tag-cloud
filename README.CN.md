@@ -41,7 +41,7 @@
     <h3 class="widget-title"><%= __('tagcloud') %></h3>
     <div class="widget tagcloud">
         <embed tplayername="SWF" splayername="SWF"
-            type="application/x-shockwave-flash" src="http://yoursite/tagcloud.swf"
+            type="application/x-shockwave-flash" src="/tagcloud.swf"
             mediawrapchecked="true" pluginspage="http://www.macromedia.com/go/getflashplayer"
             id="tagcloudflash" name="tagcloudflash" bgcolor="#f3f3f3"
             quality="high" wmode="transparent" allowscriptaccess="always"
@@ -52,7 +52,6 @@
   </div>
 <% } %>
 ```
-+ **记得 src 这边需要改成你的网站名， 如我的网站地址为:http://mikecoder.github.io，那么这个 src="http://mikecoder.github.io/tagcloud.swf"**
 + 最后再次执行 **hexo g && hexo s**, 查看首页是否已经替换成功。
 + 好好享受新版的 tagcloud 还有 hexo 吧。
 + **最重要的，请不要使用中文作为 tag，会存在编码问题**
@@ -72,7 +71,7 @@
     <h3 class="widget-title"><%= __('tagcloud') %></h3>
     <div class="widget tagcloud">
         <embed tplayername="SWF" splayername="SWF"
-            type="application/x-shockwave-flash" src="tagcloud.swf"
+            type="application/x-shockwave-flash" src="/tagcloud.swf"
             mediawrapchecked="true" pluginspage="http://www.macromedia.com/go/getflashplayer"
             id="tagcloudflash" name="tagcloudflash" bgcolor="#f3f3f3"
             quality="high" wmode="transparent" allowscriptaccess="always"
@@ -83,7 +82,9 @@
   </div>
 <% } %>
 ```
-bgcolor: 这就是背景色的颜色
++ **记得 src 这边需要改成你的网站名， 如我的网站地址为:http://mikecoder.github.io，那么这个 src="http://mikecoder.github.io/tagcloud.swf"**
++ bgcolor: 这就是背景色的颜色
+
 我们可以修改 flashvars 来修改字体颜色
 + tcolor: 标签基本颜色, 用 0xffffff 而不是 #ffffff or ffffff
 + tcolor2: 标签的渐变色
