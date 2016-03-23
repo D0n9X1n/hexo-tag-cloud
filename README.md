@@ -33,6 +33,7 @@ And you can see online live demo by clicking [here](http://mikecoder.github.io)
   </div>
 <% } %>
 ```
++ ** src should be the tagcloud.swf path，such as my site is :http://mikecoder.github.io, then src="http://mikecoder.github.io/tagcloud.swf"**
 + then we have finished the plugin install and configuration. And you can write and deploy as usual, it will create tagcloud auto. Enjoy your hexo.
 
 ##IMPORTANT
@@ -60,7 +61,6 @@ if you want to change the tagcloud's font color, please follow the following ste
   </div>
 <% } %>
 ```
-+ ** src should be the tagcloud.swf path，such as my site is :http://mikecoder.github.io, then src="http://mikecoder.github.io/tagcloud.swf"**
 bgcolor: this is the background color
 you can see the **flashvars** param, and you can change the [tcolor, tcolor2, hicolor, tspeed, distr] params, to suit your own blog.
 + tcolor: tags color, use 0xffffff instead of #ffffff or ffffff
