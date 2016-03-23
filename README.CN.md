@@ -1,7 +1,7 @@
 #Hexo Tag Cloud
 
 [![npm version](https://badge.fury.io/js/hexo-tag-cloud.svg)](https://badge.fury.io/js/hexo-tag-cloud)
-[中文说明版本](./README.CN.md)
+[English Version ReadMe](https://github.com/MikeCoder/hexo-tag-cloud/blob/master/README.md)
 
 ####使用方法
 
@@ -82,7 +82,7 @@
   </div>
 <% } %>
 ```
-+ **记得 src 这边需要改成你的网站名， 如我的网站地址为:http://mikecoder.github.io，那么这个 src="http://mikecoder.github.io/tagcloud.swf"**
++ 记得 src 这边需要改成你的网站名， 如我的网站地址为:http://mikecoder.github.io，那么这个 src="http://mikecoder.github.io/tagcloud.swf"
 + bgcolor: 这就是背景色的颜色
 
 我们可以修改 flashvars 来修改字体颜色

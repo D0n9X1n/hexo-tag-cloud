@@ -6,7 +6,7 @@
     ]
   ],
   "_from": "hexo-tag-cloud@latest",
-  "_id": "hexo-tag-cloud@1.0.6",
+  "_id": "hexo-tag-cloud@1.0.7",
   "_inCache": true,
   "_installable": true,
   "_location": "/hexo-tag-cloud",
@@ -80,5 +80,5 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "version": "1.0.6"
+  "version": "1.0.7"
 }
