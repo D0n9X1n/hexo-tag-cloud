@@ -27,7 +27,7 @@ hexo.on('exit', function(post) {
         var content = '<tags>';
         for(var tag in tags){
             if(tags.hasOwnProperty(tag)) {
-                var fontSize = tags[tag] > 10 ? 20 : tags[tag] + 8;
+                var fontSize = (tags[tag] > 10 ? 20 : tags[tag] + 8) + parseInt(Math.random() * 10);
                 content += '<a href="'+hexo.config.url+'/tags/'+tag+'" class="tag-link-'+tag+'" title="'+tags[tag]+' topics" rel="tag" style="font-size:'+fontSize+'pt;">'+tag+'</a>';
             }
         }
