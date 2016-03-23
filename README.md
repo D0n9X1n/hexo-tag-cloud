@@ -49,7 +49,7 @@ if you want to change the tagcloud's font color, please follow the following ste
     <h3 class="widget-title"><%= __('tagcloud') %></h3>
     <div class="widget tagcloud">
         <embed tplayername="SWF" splayername="SWF"
-            type="application/x-shockwave-flash" src="tagcloud.swf"
+            type="application/x-shockwave-flash" src="http://{yoursite}/tagcloud.swf"
             mediawrapchecked="true" pluginspage="http://www.macromedia.com/go/getflashplayer"
             id="tagcloudflash" name="tagcloudflash" bgcolor="#f3f3f3"
             quality="high" wmode="transparent" allowscriptaccess="always"
@@ -60,6 +60,7 @@ if you want to change the tagcloud's font color, please follow the following ste
   </div>
 <% } %>
 ```
++ ** src should be the tagcloud.swf path，such as my site is :http://mikecoder.github.io, then src="http://mikecoder.github.io/tagcloud.swf"**
 bgcolor: this is the background color
 you can see the **flashvars** param, and you can change the [tcolor, tcolor2, hicolor, tspeed, distr] params, to suit your own blog.
 + tcolor: tags color, use 0xffffff instead of #ffffff or ffffff
