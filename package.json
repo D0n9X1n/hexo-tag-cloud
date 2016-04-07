@@ -1,42 +1,4 @@
 {
-  "_args": [
-    [
-      "hexo-tag-cloud",
-      "/Users/Mike/Workspace/js-code/hexo"
-    ]
-  ],
-  "_from": "hexo-tag-cloud@latest",
-  "_id": "hexo-tag-cloud@1.0.8",
-  "_inCache": true,
-  "_installable": true,
-  "_location": "/hexo-tag-cloud",
-  "_nodeVersion": "5.8.0",
-  "_npmOperationalInternal": {
-    "host": "packages-13-west.internal.npmjs.com",
-    "tmp": "tmp/hexo-tag-cloud-1.0.0.tgz_1458482673232_0.3504062357824296"
-  },
-  "_npmUser": {
-    "email": "mike@mikecoder.cn",
-    "name": "mikecoder"
-  },
-  "_npmVersion": "3.7.3",
-  "_phantomChildren": {},
-  "_requested": {
-    "name": "hexo-tag-cloud",
-    "raw": "hexo-tag-cloud",
-    "rawSpec": "",
-    "scope": null,
-    "spec": "latest",
-    "type": "tag"
-  },
-  "_requiredBy": [
-    "#USER",
-    "/"
-  ],
-  "_shasum": "f234ab0847a624f9e2c56c014d109ab09e570666",
-  "_shrinkwrap": null,
-  "_spec": "hexo-tag-cloud",
-  "_where": "/Users/Mike/Workspace/js-code/hexo",
   "author": {
     "name": "mike"
   },
@@ -44,19 +6,10 @@
     "url": "https://github.com/MikeCoder/hexo-tag-cloud/issues"
   },
   "dependencies": {
-    "hexo-pagination": "0.0.2",
-    "object-assign": "^4.0.1",
     "hexo-fs": "0.1.5"
   },
-  "description": "a tag cloud plugin for hexo",
-  "devDependencies": {},
+  "description": "A tag cloud plugin for hexo",
   "directories": {},
-  "dist": {
-    "shasum": "f234ab0847a624f9e2c56c014d109ab09e570666",
-    "tarball": "http://registry.npmjs.org/hexo-tag-cloud/-/hexo-tag-cloud-1.0.0.tgz"
-  },
-  "gitHead": "3c77f4dfe4dd1b4d18524cf12f972d600ec8da17",
-  "homepage": "https://github.com/MikeCoder/hexo-tag-cloud#readme",
   "keywords": [
     "tag",
     "cloud",
@@ -80,5 +33,5 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "version": "1.0.8"
+  "version": "1.0.9"
 }

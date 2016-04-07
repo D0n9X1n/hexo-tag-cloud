@@ -5,6 +5,9 @@ var pathFn = require('path');
 var Hexo = require('hexo');
 
 hexo.on('exit', function(post) {
+    if (!fs.existsSync(pathFn.join(hexo.public_dir, 'tags'))) {
+        return;
+    }
     fs.listDir(pathFn.join(hexo.public_dir, 'tags')).then(function(files) {
         console.log("generating tagcloud.xml");
         var tags = {}
