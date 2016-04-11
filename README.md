@@ -41,6 +41,9 @@ Please don't use chinese to name a tag
 ##Troubleshooting
 Submit issue please
 
+##TODO
+See [Todo.md](./TODO.md)
+
 ##Customize
 if you want to change the tagcloud's font color, please follow the following steps.
 ```
