@@ -1,3 +1,23 @@
+// Copyright © 2016 TangDongxin
+
+// Permission is hereby granted, free of charge, to any person obtaining
+// a copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
+// OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 'use strict';
 
 var fs = require('hexo-fs');
@@ -8,45 +28,8 @@ hexo.on('exit', function(post) {
     if (!fs.existsSync(pathFn.join(hexo.public_dir, 'tags'))) {
         return;
     }
-    fs.listDir(pathFn.join(hexo.public_dir, 'tags')).then(function(files) {
-        console.log("generating tagcloud.xml");
-        var tags = {}
-        for (var idx in files) {
-            if (!(Object.prototype.toString.call(files[idx]) === "[object String]")) {
-                continue;
-            }
+    var libPath = pathFn.join(pathFn.join(pathFn.join(hexo.base_dir, 'node_modules'), 'hexo-tag-cloud'), 'lib');
 
-            if (files[idx].indexOf('/') < 1) {
-                continue;
-            }
-
-            var tagName = files[idx].substr(0, files[idx].indexOf('/'));
-            if (tags[tagName]) {
-                tags[tagName] = tags[tagName] + 1;
-            } else {
-                tags[tagName] = 1;
-            }
-        }
-        var content = '<tags>';
-        for(var tag in tags){
-            if(tags.hasOwnProperty(tag)) {
-                var fontSize = (tags[tag] > 10 ? 20 : tags[tag] + 8) + parseInt(Math.random() * 10);
-                content += '<a href="'+hexo.config.url+'/tags/'+tag+'" class="tag-link-'+tag+'" title="'+tags[tag]+' topics" rel="tag" style="font-size:'+fontSize+'pt;">'+tag+'</a>';
-            }
-        }
-        content += '</tags>';
-        fs.writeFile(pathFn.join(hexo.public_dir, 'tagcloud.xml'), content);
-        console.log("generating tagcloud.xml is ok");
-
-        var cloudPath = pathFn.join(pathFn.join(pathFn.join(hexo.base_dir, 'node_modules'), 'hexo-tag-cloud'), 'tagcloud.swf');
-        fs.exists(pathFn.join(hexo.public_dir, 'tagcloud.swf')).then(function (res) {
-            if (!res) {
-                fs.readFile(cloudPath).then(function(content) {
-                    console.log("copying tagcloud.swf");
-                    fs.copyFile(cloudPath, pathFn.join(hexo.public_dir, 'tagcloud.swf'));
-                    console.log("copying tagcloud.swf is ok");
-                });
-            }
-        })
-    });
+    fs.copyFile(pathFn.join(libPath, 'tagcloud.js'), pathFn.join(pathFn.join(hexo.public_dir, 'js'), 'tagcloud.js'));
+    fs.copyFile(pathFn.join(libPath, 'tagcanvas.js'), pathFn.join(pathFn.join(hexo.public_dir, 'js'), 'tagcanvas.js'));
 });
