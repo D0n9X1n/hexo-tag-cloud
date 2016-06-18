@@ -18,6 +18,8 @@ And you can see online live demo by clicking [here](http://mikecoder.github.io)
 + then we change the file to the following code:
 ```
 <% if (site.tags.length){ %>
+    <script type="text/javascript" charset="utf-8" src="/js/tagcloud.js"></script>
+    <script type="text/javascript" charset="utf-8" src="/js/tagcanvas.js"></script>
     <div class="widget-wrap">
         <h3 class="widget-title"><%= __('tagcloud') %></h3>
         <div id="myCanvasContainer" class="widget tagcloud">
