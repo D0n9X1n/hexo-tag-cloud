@@ -43,9 +43,9 @@ Now the hexo-tag-cloud plugin support customize feature. It's simple to change t
 # hexo-tag-cloud
 tag_cloud:
     textFont: Trebuchet MS, Helvetica
-    textColour: #333
+    textColour: \#333
     textHeight: 25
-    outlineColour: #E2E1D1
+    outlineColour: \#E2E1D1
 ```
 + then use `hexo c && hexo g && hexo s` to enjoy your different tag cloud
 

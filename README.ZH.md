@@ -46,9 +46,9 @@ Hexo 标签云插件
 # hexo-tag-cloud
 tag_cloud:
     textFont: Trebuchet MS, Helvetica
-    textColour: #333
+    textColour: \#333
     textHeight: 25
-    outlineColour: #E2E1D1
+    outlineColour: \#E2E1D1
 ```
 + 然后使用 `hexo c && hexo g && hexo s` 来享受属于你自己的独一无二的标签云吧。
 

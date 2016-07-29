@@ -25,7 +25,6 @@ var pathFn = require('path');
 var Hexo = require('hexo');
 
 hexo.on('exit', function(post) {
-    console.log(hexo.config);
     if (!fs.existsSync(pathFn.join(hexo.public_dir, 'tags'))) {
         return;
     }
