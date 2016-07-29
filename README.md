@@ -35,11 +35,22 @@ And you can see online live demo by clicking [here](http://mikecoder.github.io)
 ##Troubleshooting
 Submit issue please
 
+##Customize
+Now the hexo-tag-cloud plugin support customize feature. It's simple to change the color and the font for the tag cloud.
+
++ Add these config below to your *_config.yml* file(which under your blog root directory)
+```
+# hexo-tag-cloud
+tag_cloud:
+    textFont: Trebuchet MS, Helvetica
+    textColour: #333
+    textHeight: 25
+    outlineColour: #E2E1D1
+```
++ then use `hexo c && hexo g && hexo s` to enjoy your different tag cloud
+
 ##TODO
 See [Todo.md](./TODO.md)
-
-##Customize
-Will support next version
 
 #Thanks
 + **[TagCanvas](http://www.goat1000.com/tagcanvas.php)**

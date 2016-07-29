@@ -25,11 +25,44 @@ var pathFn = require('path');
 var Hexo = require('hexo');
 
 hexo.on('exit', function(post) {
+    console.log(hexo.config);
     if (!fs.existsSync(pathFn.join(hexo.public_dir, 'tags'))) {
         return;
     }
     var libPath = pathFn.join(pathFn.join(pathFn.join(hexo.base_dir, 'node_modules'), 'hexo-tag-cloud'), 'lib');
 
-    fs.copyFile(pathFn.join(libPath, 'tagcloud.js'), pathFn.join(pathFn.join(hexo.public_dir, 'js'), 'tagcloud.js'));
-    fs.copyFile(pathFn.join(libPath, 'tagcanvas.js'), pathFn.join(pathFn.join(hexo.public_dir, 'js'), 'tagcanvas.js'));
+    var tagcanvasPubPath = pathFn.join(pathFn.join(hexo.public_dir, 'js'), 'tagcanvas.js');
+    var tagcloudPubPath  = pathFn.join(pathFn.join(hexo.public_dir, 'js'), 'tagcloud.js');
+
+    fs.copyFile(pathFn.join(libPath, 'tagcanvas.js'), tagcanvasPubPath);
+
+    var tagCloudJsContent = "window.onload = function() {"
+                                + " try {"
+                                    + " TagCanvas.textFont = " + (!(hexo.config.tag_cloud && hexo.config.tag_cloud.textFont) ? "'Trebuchet MS, Helvetica, sans-serif';" : "'" + hexo.config.tag_cloud.textFont + "';")
+                                    + " TagCanvas.textColour = " + (!(hexo.config.tag_cloud && hexo.config.tag_cloud.textColour) ? "'#333';" : "'" + hexo.config.tag_cloud.textColour + "';")
+                                    + " TagCanvas.textHeight = " + (!(hexo.config.tag_cloud && hexo.config.tag_cloud.textHeight) ? "25;" : hexo.config.tag_cloud.textHeight + ";")
+                                    + " TagCanvas.outlineColour = " + (!(hexo.config.tag_cloud && hexo.config.tag_cloud.outlineColour) ? "'#E2E1C1';" : "'" + hexo.config.tag_cloud.outlineColour + "';")
+                                    + " TagCanvas.outlineMethod = 'block';"
+                                    + " TagCanvas.maxSpeed = 0.03;"
+                                    + " TagCanvas.minBrightness = 0.2;"
+                                    + " TagCanvas.depth = 0.92;"
+                                    + " TagCanvas.pulsateTo = 0.6;"
+                                    + " TagCanvas.initial = [0.1,-0.1];"
+                                    + " TagCanvas.decel = 0.98;"
+                                    + " TagCanvas.reverse = true;"
+                                    + " TagCanvas.hideTags = false;"
+                                    + " TagCanvas.shadow = '#ccf';"
+                                    + " TagCanvas.shadowBlur = 3;"
+                                    + " TagCanvas.weight = false;"
+                                    + " TagCanvas.imageScale = null;"
+                                    + " TagCanvas.fadeIn = 1000;"
+                                    + " TagCanvas.clickToFront = 600;"
+                                    + " TagCanvas.Start('resCanvas');"
+                                    + " TagCanvas.tc['resCanvas'].Wheel(false)"
+                                + "} catch(e) {"
+                                    + " console.log(e);"
+                                    + " document.getElementById('myCanvasContainer').style.display = 'none';"
+                                + " }"
+                            + " };";
+    fs.writeFile(tagcloudPubPath, tagCloudJsContent);
 });

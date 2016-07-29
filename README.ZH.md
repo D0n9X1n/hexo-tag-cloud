@@ -39,7 +39,18 @@ Hexo 标签云插件
 看 [Todo.md](./TODO.md)
 
 ##自定义
-将会在下一版本支持
+现在 hexo-tag-cloud 插件支持自定义啦。非常简单的步骤就可以改变你的标签云的字体和颜色，还有突出高亮。
+
++ 在你的博客根目录，找到 *_config.yml* 文件然后添加如下的配置项:
+```
+# hexo-tag-cloud
+tag_cloud:
+    textFont: Trebuchet MS, Helvetica
+    textColour: #333
+    textHeight: 25
+    outlineColour: #E2E1D1
+```
++ 然后使用 `hexo c && hexo g && hexo s` 来享受属于你自己的独一无二的标签云吧。
 
 ##致谢
 + **[TagCanvas](http://www.goat1000.com/tagcanvas.php)**
