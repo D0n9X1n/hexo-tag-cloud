@@ -35,7 +35,19 @@ hexo.on('exit', function(post) {
 
     fs.copyFile(pathFn.join(libPath, 'tagcanvas.js'), tagcanvasPubPath);
 
-    var tagCloudJsContent = "window.onload = function() {"
+    var tagCloudJsContent = "function addLoadEvent(func) {"
+                                + "var oldonload = window.onload;"
+                                + "if (typeof window.onload != 'function') {"
+                                    + "window.onload = func;"
+                                + "} else {"
+                                    + "window.onload = function() {"
+                                        + "oldonload();"
+                                        + "func();"
+                                    + "}"
+                                + "}"
+                            + "}"
+                            + "addLoadEvent(function() {"
+                                + "console.log('tag cloud plugin rock and roll!');"
                                 + " try {"
                                     + " TagCanvas.textFont = " + (!(hexo.config.tag_cloud && hexo.config.tag_cloud.textFont) ? "'Trebuchet MS, Helvetica, sans-serif';" : "'" + hexo.config.tag_cloud.textFont + "';")
                                     + " TagCanvas.textColour = " + (!(hexo.config.tag_cloud && hexo.config.tag_cloud.textColour) ? "'#333';" : "'" + hexo.config.tag_cloud.textColour + "';")
@@ -62,6 +74,7 @@ hexo.on('exit', function(post) {
                                     + " console.log(e);"
                                     + " document.getElementById('myCanvasContainer').style.display = 'none';"
                                 + " }"
-                            + " };";
+                            + " });";
     fs.writeFile(tagcloudPubPath, tagCloudJsContent);
 });
+
