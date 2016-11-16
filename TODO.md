@@ -10,3 +10,4 @@ TODO LIST
 ###Bugs
 1. √ ~~tagcloud.xml will be empty when delete blogs~~
 2. √ ~~onload function will override by other plugins~~
+3. √ ~~next theme not support~~
