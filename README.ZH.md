@@ -1,6 +1,7 @@
 #Hexo Tag Cloud
 
 [![npm version](https://badge.fury.io/js/hexo-tag-cloud.svg)](https://badge.fury.io/js/hexo-tag-cloud)
+
 [English Version ReadMe](https://github.com/MikeCoder/hexo-tag-cloud/blob/master/README.md)
 
 Hexo 标签云插件
