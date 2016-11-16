@@ -32,6 +32,24 @@ Hexo 标签云插件
 ```
 + 完成安装和显示，可以通过 hexo g && hexo s 来进行本地预览
 
+##For Next Theme Users
++ You should insert the following code instead:
+```
+{% if site.tags.length > 1 %}
+<script type="text/javascript" charset="utf-8" src="/js/tagcloud.js"></script>
+<script type="text/javascript" charset="utf-8" src="/js/tagcanvas.js"></script>
+<div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloug</h3>
+    <div id="myCanvasContainer" class="widget tagcloud">
+        <canvas width="250" height="250" id="resCanvas" style="width=100%">
+            {{ list_tags() }}
+        </canvas>
+    </div>
+</div>
+{% endif %}
+```
+@See [Issue 6](https://github.com/MikeCoder/hexo-tag-cloud/issues/6)
+
 ##Troubleshooting
 提交 issue 和截图以及 log
 
