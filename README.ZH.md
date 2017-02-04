@@ -12,17 +12,21 @@ Hexo 标签云插件
 这里是[效果预览站点](http://mikecoder.github.io)
 
 ##如何使用
+####安装
 + 进入到 hexo 的根目录，然后在 `package.json` 中添加依赖: `"hexo-tag-cloud": "2.0.*"`
 + 然后执行 `npm install` 命令
-+ 然后需要你去修改主题的 tagcloud 的模板
-+ 这里以默认主题 landscape 为例，tagcloud 模板文件为 `hexo/themes/landscape/layout/_widget/tagcloud.ejs`
-+ 然后将这个文件修改为如下内容：
++ 然后需要你去修改主题的 tagcloud 的模板，这个依据你的主题而定。
+
+####对于 ejs 的用户
++ 这里以默认主题 landscape 为例。
++ tagcloud 模板文件为 `hexo/themes/landscape/layout/_widget/tagcloud.ejs`
++ 将这个文件修改为如下内容：
 ```
-<% if (site.tags.length){ %>
+<% if (site.tags.length) { %>
     <script type="text/javascript" charset="utf-8" src="/js/tagcloud.js"></script>
     <script type="text/javascript" charset="utf-8" src="/js/tagcanvas.js"></script>
     <div class="widget-wrap">
-        <h3 class="widget-title"><%= __('tagcloud') %></h3>
+        <h3 class="widget-title">Tag Cloud</h3>
         <div id="myCanvasContainer" class="widget tagcloud">
             <canvas width="250" height="250" id="resCanvas" style="width=100%">
                 <%- tagcloud() %>
@@ -31,16 +35,16 @@ Hexo 标签云插件
     </div>
 <% } %>
 ```
-+ 完成安装和显示，可以通过 hexo g && hexo s 来进行本地预览
 
-##For Next Theme Users
-+ You should insert the following code instead:
+####对于 swig 用户
++ 这里以 Next 主题为例。
++ 找到文件 `next/layout/_macro/sidebar.swig`, 然后添加如下内容。
 ```
 {% if site.tags.length > 1 %}
 <script type="text/javascript" charset="utf-8" src="/js/tagcloud.js"></script>
 <script type="text/javascript" charset="utf-8" src="/js/tagcanvas.js"></script>
 <div class="widget-wrap">
-    <h3 class="widget-title">Tag Cloug</h3>
+    <h3 class="widget-title">Tag Cloud</h3>
     <div id="myCanvasContainer" class="widget tagcloud">
         <canvas width="250" height="250" id="resCanvas" style="width=100%">
             {{ list_tags() }}
@@ -49,13 +53,36 @@ Hexo 标签云插件
 </div>
 {% endif %}
 ```
-@See [Issue 6](https://github.com/MikeCoder/hexo-tag-cloud/issues/6)
+
+####对于 jade 用户
++ 这里以 Apollo 主题为例
++ 找到 `apollo/layout/archive.jade` 文件，并且把 container 代码块修改为如下内容:
+```
+...
+block container
+    include mixins/post
+    .archive
+        h2(class='archive-year')= 'Tag Cloud'
+        script(type='text/javascript', charset='utf-8', src='/oj-code/js/tagcloud.js')
+        script(type='text/javascript', charset='utf-8', src='/oj-code/js/tagcanvas.js')
+        #myCanvasContainer.widget.tagcloud(align='center')
+            canvas#resCanvas(width='500', height='500', style='width=100%')
+                !=tagcloud()
+            !=tagcloud()
+    +postList()
+...
+```
+
+####最后一步
++ 完成安装和显示，可以通过 `hexo clean && hexo g && hexo s` 来进行本地预览, hexo clean 为必须选项。
++ **PS:不要使用 `hexo g -d 或者 hexo d -g` 这类组合命令。**详情见: [Issue 7](https://github.com/MikeCoder/hexo-tag-cloud/issues/7)
+
+##TODO
+看 [Todo.md](./TODO.md)
 
 ##Troubleshooting
 提交 issue 和截图以及 log
 
-##TODO
-看 [Todo.md](./TODO.md)
 
 ##自定义
 现在 hexo-tag-cloud 插件支持自定义啦。非常简单的步骤就可以改变你的标签云的字体和颜色，还有突出高亮。

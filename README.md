@@ -11,14 +11,18 @@ Yet, just another tag cloud plugin for hexo.
 
 And you can see online live demo by clicking [here](http://mikecoder.github.io)
 
-##How to use
+##How to Use
+
+####Install
 + go into your hexo system folder, and add depandence `"hexo-tag-cloud": "2.0.*"` to `package.json`
 + then do *npm install* command
-+ then you need to change your theme layout file
-+ for example, in its default theme landscape, we should find `hexo/themes/landscape/layout/_widget/tagcloud.ejs`
-+ then we change the file to the following code:
++ then you need to change your theme layout file and add the following content to that file depended on your render system.
+
+####For ejs Users
++ For example, in its default theme landscape.
++ We should find `hexo/themes/landscape/layout/_widget/tagcloud.ejs` file and insert the following code.
 ```
-<% if (site.tags.length){ %>
+<% if (site.tags.length) { %>
     <script type="text/javascript" charset="utf-8" src="/js/tagcloud.js"></script>
     <script type="text/javascript" charset="utf-8" src="/js/tagcanvas.js"></script>
     <div class="widget-wrap">
@@ -31,16 +35,16 @@ And you can see online live demo by clicking [here](http://mikecoder.github.io)
     </div>
 <% } %>
 ```
-+ then we have finished the plugin install and configuration. And you can write and deploy as usual, it will create tagcloud auto. Enjoy your hexo.
 
-##For Next Theme Users
-+ You should insert the following code instead:
+####For swig Users
++ Here we use theme Next as an example.
++ You should insert the following code into `next/layout/_macro/sidebar.swig`.
 ```
 {% if site.tags.length > 1 %}
 <script type="text/javascript" charset="utf-8" src="/js/tagcloud.js"></script>
 <script type="text/javascript" charset="utf-8" src="/js/tagcanvas.js"></script>
 <div class="widget-wrap">
-    <h3 class="widget-title">Tag Cloug</h3>
+    <h3 class="widget-title">Tag Cloud</h3>
     <div id="myCanvasContainer" class="widget tagcloud">
         <canvas width="250" height="250" id="resCanvas" style="width=100%">
             {{ list_tags() }}
@@ -51,8 +55,30 @@ And you can see online live demo by clicking [here](http://mikecoder.github.io)
 ```
 @See [Issue 6](https://github.com/MikeCoder/hexo-tag-cloud/issues/6)
 
-##Troubleshooting
-Submit issue please
+
+####For jade Users
++ eg. theme Apollo.
++ You can add change the container block code to the following in `apollo/layout/archive.jade`.
+```
+...
+block container
+    include mixins/post
+    .archive
+        h2(class='archive-year')= 'Tag Cloud'
+        script(type='text/javascript', charset='utf-8', src='/oj-code/js/tagcloud.js')
+        script(type='text/javascript', charset='utf-8', src='/oj-code/js/tagcanvas.js')
+        #myCanvasContainer.widget.tagcloud(align='center')
+            canvas#resCanvas(width='500', height='500', style='width=100%')
+                !=tagcloud()
+            !=tagcloud()
+    +postList()
+...
+```
+
+
+####Last step
++ use `hexo clean && hexo g && hexo s` to see the change. hexo clean must be done before use `hexo g`.
++ **PS: Don't use the command `hexo g -d or hexo d -g`**, @See [Issue 7](https://github.com/MikeCoder/hexo-tag-cloud/issues/7)
 
 ##Customize
 Now the hexo-tag-cloud plugin support customize feature. It's simple to change the color and the font for the tag cloud.
@@ -66,7 +92,10 @@ tag_cloud:
     textHeight: 25
     outlineColour: \#E2E1D1
 ```
-+ then use `hexo c && hexo g && hexo s` to enjoy your different tag cloud
++ then use `hexo clean && hexo g && hexo s` to enjoy your different tag cloud
+
+##Troubleshooting
+Submit issue please
 
 ##TODO
 See [Todo.md](./TODO.md)
