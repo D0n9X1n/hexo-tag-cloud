@@ -8,7 +8,7 @@
   "dependencies": {
     "hexo-fs": "0.1.5"
   },
-  "description": "A tag cloud plugin for hexo",
+  "description": "Yet, just another tag cloud plugin for hexo",
   "directories": {},
   "keywords": [
     "tag",

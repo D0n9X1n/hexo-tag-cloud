@@ -1,4 +1,4 @@
-#Hexo Tag Cloud
+#hexo-tag-cloud
 
 [![npm version](https://badge.fury.io/js/hexo-tag-cloud.svg)](https://badge.fury.io/js/hexo-tag-cloud)
 
