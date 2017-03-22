@@ -1,4 +1,4 @@
-#Hexo Tag Cloud
+# Hexo Tag Cloud
 
 [![npm version](https://badge.fury.io/js/hexo-tag-cloud.svg)](https://badge.fury.io/js/hexo-tag-cloud)
 
@@ -6,18 +6,18 @@
 
 Hexo 标签云插件
 
-##效果图
+## 效果图
 ![TagCloud](./img/example.jpg)
 
-这里是[效果预览站点](http://mikecoder.github.io)
+这里是[效果预览站点](http://mikecoder.github.io/archives/)
 
-##如何使用
-####安装
+## 如何使用
+#### 安装
 + 进入到 hexo 的根目录，然后在 `package.json` 中添加依赖: `"hexo-tag-cloud": "2.0.*"`
 + 然后执行 `npm install` 命令
 + 然后需要你去修改主题的 tagcloud 的模板，这个依据你的主题而定。
 
-####对于 ejs 的用户
+#### 对于 ejs 的用户
 + 这里以默认主题 landscape 为例。
 + tagcloud 模板文件为 `hexo/themes/landscape/layout/_widget/tagcloud.ejs`
 + 将这个文件修改为如下内容：
@@ -36,7 +36,7 @@ Hexo 标签云插件
 <% } %>
 ```
 
-####对于 swig 用户
+#### 对于 swig 用户
 + 这里以 Next 主题为例。
 + 找到文件 `next/layout/_macro/sidebar.swig`, 然后添加如下内容。
 ```
@@ -54,7 +54,7 @@ Hexo 标签云插件
 {% endif %}
 ```
 
-####对于 jade 用户
+#### 对于 jade 用户
 + 这里以 Apollo 主题为例
 + 找到 `apollo/layout/archive.jade` 文件，并且把 container 代码块修改为如下内容:
 ```
@@ -73,18 +73,18 @@ block container
 ...
 ```
 
-####最后一步
+#### 最后一步
 + 完成安装和显示，可以通过 `hexo clean && hexo g && hexo s` 来进行本地预览, hexo clean 为必须选项。
 + **PS:不要使用 `hexo g -d 或者 hexo d -g` 这类组合命令。**详情见: [Issue 7](https://github.com/MikeCoder/hexo-tag-cloud/issues/7)
 
-##TODO
+## TODO
 看 [Todo.md](./TODO.md)
 
-##Troubleshooting
+## Troubleshooting
 提交 issue 和截图以及 log
 
 
-##自定义
+## 自定义
 现在 hexo-tag-cloud 插件支持自定义啦。非常简单的步骤就可以改变你的标签云的字体和颜色，还有突出高亮。
 
 + 在你的博客根目录，找到 *_config.yml* 文件然后添加如下的配置项:
@@ -98,5 +98,5 @@ tag_cloud:
 ```
 + 然后使用 `hexo c && hexo g && hexo s` 来享受属于你自己的独一无二的标签云吧。
 
-##致谢
+## 致谢
 + **[TagCanvas](http://www.goat1000.com/tagcanvas.php)**

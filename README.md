@@ -1,4 +1,4 @@
-#hexo-tag-cloud
+# hexo-tag-cloud
 
 [![npm version](https://badge.fury.io/js/hexo-tag-cloud.svg)](https://badge.fury.io/js/hexo-tag-cloud)
 
@@ -6,19 +6,19 @@
 
 Yet, just another tag cloud plugin for hexo.
 
-##How it looks like
+## How it looks like
 ![TagCloud](./img/example.jpg)
 
-And you can see online live demo by clicking [here](http://mikecoder.github.io)
+And you can see online live demo by clicking [here](http://mikecoder.github.io/archives/)
 
-##How to Use
+## How to Use
 
-####Install
+#### Install
 + go into your hexo system folder, and add depandence `"hexo-tag-cloud": "2.0.*"` to `package.json`
 + then do *npm install* command
 + then you need to change your theme layout file and add the following content to that file depended on your render system.
 
-####For ejs Users
+#### For ejs Users
 + For example, in its default theme landscape.
 + We should find `hexo/themes/landscape/layout/_widget/tagcloud.ejs` file and insert the following code.
 ```
@@ -36,7 +36,7 @@ And you can see online live demo by clicking [here](http://mikecoder.github.io)
 <% } %>
 ```
 
-####For swig Users
+#### For swig Users
 + Here we use theme Next as an example.
 + You should insert the following code into `next/layout/_macro/sidebar.swig`.
 ```
@@ -56,7 +56,7 @@ And you can see online live demo by clicking [here](http://mikecoder.github.io)
 @See [Issue 6](https://github.com/MikeCoder/hexo-tag-cloud/issues/6)
 
 
-####For jade Users
+#### For jade Users
 + eg. theme Apollo.
 + You can add change the container block code to the following in `apollo/layout/archive.jade`.
 ```
@@ -76,11 +76,11 @@ block container
 ```
 
 
-####Last step
+#### Last step
 + use `hexo clean && hexo g && hexo s` to see the change. hexo clean must be done before use `hexo g`.
 + **PS: Don't use the command `hexo g -d or hexo d -g`**, @See [Issue 7](https://github.com/MikeCoder/hexo-tag-cloud/issues/7)
 
-##Customize
+## Customize
 Now the hexo-tag-cloud plugin support customize feature. It's simple to change the color and the font for the tag cloud.
 
 + Add these config below to your *_config.yml* file(which under your blog root directory)
@@ -94,11 +94,11 @@ tag_cloud:
 ```
 + then use `hexo clean && hexo g && hexo s` to enjoy your different tag cloud
 
-##Troubleshooting
+## Troubleshooting
 Submit issue please
 
-##TODO
+## TODO
 See [Todo.md](./TODO.md)
 
-#Thanks
+# Thanks
 + **[TagCanvas](http://www.goat1000.com/tagcanvas.php)**
