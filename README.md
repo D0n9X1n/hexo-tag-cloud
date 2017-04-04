@@ -9,7 +9,7 @@ Yet, just another tag cloud plugin for hexo.
 ## How it looks like
 ![TagCloud](./img/example.jpg)
 
-And you can see online live demo by clicking [here](http://mikecoder.github.io/archives/)
+And you can see online live demo by clicking [here](https://mhexo.github.io/example-site/archives/)
 
 ## How to Use
 
