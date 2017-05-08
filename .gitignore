@@ -1,6 +1,7 @@
 # Created by .ignore support plugin (hsz.mobi)
 ### *.iml template
 npm-debug.log
+node_modules
 
 
 ### .git template
