@@ -51,7 +51,7 @@ hexo.on('exit', function(post) {
                                 + " try {"
                                     + " TagCanvas.textFont = " + (!(hexo.config.tag_cloud && hexo.config.tag_cloud.textFont) ? "'Trebuchet MS, Helvetica, sans-serif';" : "'" + hexo.config.tag_cloud.textFont + "';")
                                     + " TagCanvas.textColour = " + (!(hexo.config.tag_cloud && hexo.config.tag_cloud.textColour) ? "'#333';" : "'" + hexo.config.tag_cloud.textColour + "';")
-                                    + " TagCanvas.textHeight = " + (!(hexo.config.tag_cloud && hexo.config.tag_cloud.textHeight) ? "25;" : hexo.config.tag_cloud.textHeight + ";")
+                                    + " TagCanvas.textHeight = " + (!(hexo.config.tag_cloud && hexo.config.tag_cloud.textHeight) ? "15;" : hexo.config.tag_cloud.textHeight + ";")
                                     + " TagCanvas.outlineColour = " + (!(hexo.config.tag_cloud && hexo.config.tag_cloud.outlineColour) ? "'#E2E1C1';" : "'" + hexo.config.tag_cloud.outlineColour + "';")
                                     + " TagCanvas.outlineMethod = 'block';"
                                     + " TagCanvas.maxSpeed = 0.03;"
