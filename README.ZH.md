@@ -9,7 +9,7 @@ Hexo 标签云插件
 ## 效果图
 ![TagCloud](./img/example.jpg)
 
-这里是[效果预览站点](https://mhexo.github.io/example-site)
+这里是[效果预览站点](https://mikecoder.github.io/oj-code/archives/)
 
 ## 如何使用
 #### 安装
