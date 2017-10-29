@@ -23,16 +23,26 @@
 var fs = require('hexo-fs');
 var pathFn = require('path');
 var Hexo = require('hexo');
+var log = require('hexo-log')({
+    debug: false,
+    silent: false
+});
 
-hexo.on('exit', function(post) {
-    if (!fs.existsSync(pathFn.join(hexo.public_dir, 'tags'))) {
-        return;
-    }
+
+hexo.extend.filter.register('after_generate', function(post) {
+    // when using hexo s directly the public folder will not be created
+    // so the folder can't be used as the flag to mark whether the user
+    // use the tags.
+    // TODO: find another flag
+    // if (!fs.existsSync(pathFn.join(hexo.public_dir, 'tags'))) {
+        // return;
+    // }
     var libPath = pathFn.join(pathFn.join(pathFn.join(hexo.base_dir, 'node_modules'), 'hexo-tag-cloud'), 'lib');
 
     var tagcanvasPubPath = pathFn.join(pathFn.join(hexo.public_dir, 'js'), 'tagcanvas.js');
     var tagcloudPubPath  = pathFn.join(pathFn.join(hexo.public_dir, 'js'), 'tagcloud.js');
 
+    log.info("---- START COPYING TAG CLOUD FILES ----")
     fs.copyFile(pathFn.join(libPath, 'tagcanvas.js'), tagcanvasPubPath);
 
     var tagCloudJsContent = "function addLoadEvent(func) {"
@@ -76,5 +86,6 @@ hexo.on('exit', function(post) {
                                 + " }"
                             + " });";
     fs.writeFile(tagcloudPubPath, tagCloudJsContent);
+    log.info("---- END COPYING TAG CLOUD FILES ----")
 });
 
