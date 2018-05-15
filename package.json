@@ -6,7 +6,8 @@
     "url": "https://github.com/MikeCoder/hexo-tag-cloud/issues"
   },
   "dependencies": {
-    "hexo-fs": "0.1.5"
+    "hexo-fs": "0.1.5",
+    "hexo-log": "0.2.0"
   },
   "description": "Yet, just another tag cloud plugin for hexo",
   "directories": {},
@@ -33,5 +34,5 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "version": "2.0.9"
+  "version": "2.0.10"
 }
