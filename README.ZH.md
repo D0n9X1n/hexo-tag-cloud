@@ -15,7 +15,7 @@ Hexo 标签云插件
 
 ## 如何使用
 #### 安装
-+ 进入到 hexo 的根目录，然后在 `package.json` 中添加依赖: `"hexo-tag-cloud": "2.0.*"`
++ 进入到 hexo 的根目录，然后在 `package.json` 中添加依赖: `"hexo-tag-cloud": "2.1.*"`
 + 然后执行 `npm install` 命令
 + 然后需要你去修改主题的 tagcloud 的模板，这个依据你的主题而定。
 
@@ -94,9 +94,11 @@ block container
 # hexo-tag-cloud
 tag_cloud:
     textFont: Trebuchet MS, Helvetica
-    textColour: \#333
+    textColor: '#333'
     textHeight: 25
-    outlineColour: \#E2E1D1
+    outlineColor: '#E2E1D1'
+    maxSpeed: 0.5
+
 ```
 + 然后使用 `hexo c && hexo g && hexo s` 来享受属于你自己的独一无二的标签云吧。
 

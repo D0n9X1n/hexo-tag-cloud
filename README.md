@@ -9,14 +9,14 @@
 Yet, just another tag cloud plugin for hexo.
 
 ## How it looks like
-![TagCloud](./img/example.jpg)
+![TagCloud](./img/example.png)
 
 And you can see online live demo by clicking [here](https://mikecoder.github.io/oj-code/archives/)
 
 ## How to Use
 
 #### Install
-+ go into your hexo system folder, and add depandence `"hexo-tag-cloud": "2.0.*"` to `package.json`
++ go into your hexo system folder, and add depandence `"hexo-tag-cloud": "2.1.*"` to `package.json`
 + then do *npm install* command
 + then you need to change your theme layout file and add the following content to that file depended on your render system.
 
@@ -86,13 +86,15 @@ block container
 Now the hexo-tag-cloud plugin support customize feature. It's simple to change the color and the font for the tag cloud.
 
 + Add these config below to your *_config.yml* file(which under your blog root directory)
+
 ```
 # hexo-tag-cloud
 tag_cloud:
-    textFont: Trebuchet MS, Helvetica
-    textColour: \#333
+    textFont: 'Trebuchet MS, Helvetica'
+    textColor: '#333'
     textHeight: 25
-    outlineColour: \#E2E1D1
+    outlineColor: '#E2E1D1'
+    maxSpeed: 0.5 # range from [0.01 ~ 1]
 ```
 + then use `hexo clean && hexo g && hexo s` to enjoy your different tag cloud
 
