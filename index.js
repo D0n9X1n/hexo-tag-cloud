@@ -46,7 +46,7 @@ hexo.extend.filter.register("after_generate", function(post) {
   log.info("---- START COPYING TAG CLOUD FILES ----");
   fs.copyFile(pathFn.join(libPath, "tagcanvas.js"), tagcanvasPubPath);
 
-  var textFont = "'Trebuchet MS', 'Helvetica', 'sans-serif'";
+  var textFont = "Helvetica";
   var textColor = "#333";
   var textHeight = "15";
   var outlineColor = "#E2E1C1";
