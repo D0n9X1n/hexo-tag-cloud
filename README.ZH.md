@@ -25,8 +25,8 @@ Hexo 标签云插件
 + 将这个文件修改为如下内容：
 ```
 <% if (site.tags.length) { %>
-    <script type="text/javascript" charset="utf-8" src="/js/tagcloud.js"></script>
-    <script type="text/javascript" charset="utf-8" src="/js/tagcanvas.js"></script>
+    <script type="text/javascript" charset="utf-8" src="{{ url_for('/js/tagcloud.js') }}"></script>
+    <script type="text/javascript" charset="utf-8" src="{{ url_for('/js/tagcanvas.js') }}"></script>
     <div class="widget-wrap">
         <h3 class="widget-title">Tag Cloud</h3>
         <div id="myCanvasContainer" class="widget tagcloud">
@@ -43,8 +43,8 @@ Hexo 标签云插件
 + 找到文件 `next/layout/_macro/sidebar.swig`, 然后添加如下内容。
 ```
 {% if site.tags.length > 1 %}
-<script type="text/javascript" charset="utf-8" src="/js/tagcloud.js"></script>
-<script type="text/javascript" charset="utf-8" src="/js/tagcanvas.js"></script>
+<script type="text/javascript" charset="utf-8" src="{{ url_for('/js/tagcloud.js') }}/js/tagcloud.js"></script>
+<script type="text/javascript" charset="utf-8" src="{{ url_for('/js/tagcanvas.js') }}"></script>
 <div class="widget-wrap">
     <h3 class="widget-title">Tag Cloud</h3>
     <div id="myCanvasContainer" class="widget tagcloud">
@@ -65,8 +65,8 @@ block container
     include mixins/post
     .archive
         h2(class='archive-year')= 'Tag Cloud'
-        script(type='text/javascript', charset='utf-8', src='/oj-code/js/tagcloud.js')
-        script(type='text/javascript', charset='utf-8', src='/oj-code/js/tagcanvas.js')
+        script(type='text/javascript', charset='utf-8', src='{{ url_for("/js/tagcloud.js") }}')
+        script(type='text/javascript', charset='utf-8', src='{{ url_for("/js/tagcanvas.js") }}')
         #myCanvasContainer.widget.tagcloud(align='center')
             canvas#resCanvas(width='500', height='500', style='width=100%')
                 !=tagcloud()
