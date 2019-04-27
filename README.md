@@ -25,16 +25,16 @@ And you can see online live demo by clicking [here](https://mikecoder.github.io/
 + We should find `hexo/themes/landscape/layout/_widget/tagcloud.ejs` file and insert the following code.
 ```
 <% if (site.tags.length) { %>
-    <script type="text/javascript" charset="utf-8" src="{{ url_for('/js/tagcloud.js') }}"></script>
-    <script type="text/javascript" charset="utf-8" src="{{ url_for('/js/tagcanvas.js') }}"></script>
-    <div class="widget-wrap">
-        <h3 class="widget-title"><%= __('tagcloud') %></h3>
-        <div id="myCanvasContainer" class="widget tagcloud">
-            <canvas width="250" height="250" id="resCanvas" style="width=100%">
-                <%- tagcloud() %>
-            </canvas>
-        </div>
+  <script type="text/javascript" charset="utf-8" src="<%- url_for('/js/tagcloud.js') %>"></script>
+  <script type="text/javascript" charset="utf-8" src="<%- url_for('/js/tagcanvas.js') %>"></script>
+  <div class="widget-wrap">
+    <h3 class="widget-title"><%= __('tagcloud') %></h3>
+    <div id="myCanvasContainer" class="widget tagcloud">
+      <canvas width="250" height="250" id="resCanvas" style="width=100%">
+        <%- tagcloud() %>
+      </canvas>
     </div>
+  </div>
 <% } %>
 ```
 
@@ -43,16 +43,16 @@ And you can see online live demo by clicking [here](https://mikecoder.github.io/
 + You should insert the following code into `next/layout/_macro/sidebar.swig`.
 ```
 {% if site.tags.length > 1 %}
-<script type="text/javascript" charset="utf-8" src="{{ url_for('/js/tagcloud.js') }}/js/tagcloud.js"></script>
-<script type="text/javascript" charset="utf-8" src="{{ url_for('/js/tagcanvas.js') }}"></script>
-<div class="widget-wrap">
+  <script type="text/javascript" charset="utf-8" src="{{ url_for('/js/tagcloud.js') }}"></script>
+  <script type="text/javascript" charset="utf-8" src="{{ url_for('/js/tagcanvas.js') }}"></script>
+  <div class="widget-wrap">
     <h3 class="widget-title">Tag Cloud</h3>
     <div id="myCanvasContainer" class="widget tagcloud">
-        <canvas width="250" height="250" id="resCanvas" style="width=100%">
-            {{ list_tags() }}
-        </canvas>
+      <canvas width="250" height="250" id="resCanvas" style="width=100%">
+        {{ list_tags() }}
+      </canvas>
     </div>
-</div>
+  </div>
 {% endif %}
 ```
 @See [Issue 6](https://github.com/MikeCoder/hexo-tag-cloud/issues/6)
@@ -67,8 +67,8 @@ block container
     include mixins/post
     .archive
         h2(class='archive-year')= 'Tag Cloud'
-        script(type='text/javascript', charset='utf-8', src='{{ url_for("/js/tagcloud.js") }}')
-        script(type='text/javascript', charset='utf-8', src='{{ url_for("/js/tagcanvas.js") }}')
+        script(type='text/javascript', charset='utf-8', src=url_for("/js/tagcloud.js"))
+        script(type='text/javascript', charset='utf-8', src=url_for("/js/tagcanvas.js"))
         #myCanvasContainer.widget.tagcloud(align='center')
             canvas#resCanvas(width='500', height='500', style='width=100%')
                 !=tagcloud()
