@@ -11,7 +11,7 @@ Yet, just another tag cloud plugin for hexo.
 ## How it looks like
 ![TagCloud](./img/example.png)
 
-And you can see online live demo by clicking [here](https://mikecoder.github.io/archives/)
+And you can see online live demo by clicking [here](https://mhexo.github.io/archives/)
 
 ## How to Use
 

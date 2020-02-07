@@ -11,7 +11,7 @@ Hexo 标签云插件
 ## 效果图
 ![TagCloud](./img/example.png)
 
-这里是[效果预览站点](https://mikecoder.github.io/archives/)
+这里是[效果预览站点](https://mhexo.github.io/archives/)
 
 ## 如何使用
 #### 安装
