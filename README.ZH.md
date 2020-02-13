@@ -76,7 +76,29 @@ block container
 ...
 ```
 
+#### 对于 pug 用户
+
++ 这里以 Butterfly 主题为例
++ 找到 `Butterfly/layout/includes/widget/card_tags.pug` 文件
++ 将这个文件修改为如下内容(注意缩进):
+
+```
+if site.tags.length
+  .card-widget.card-tags
+    .card-content
+      .item-headline
+        i.fa.fa-tags(aria-hidden="true")
+        span= _p('aside.card_tags')
+        script(type="text/javascript" charset="utf-8" src="/js/tagcloud.js")
+        script(type="text/javascript" charset="utf-8" src="/js/tagcanvas.js")
+        #myCanvasContainer.widget.tagcloud(align='center')
+          canvas#resCanvas(width='200', height='200', style='width=100%')
+            != tagcloud()
+          != tagcloud({min_font: 16, max_font: 24, amount: 50, color: true, start_color: '#999', end_color: '#99a9bf'})
+```
+
 #### 最后一步
+
 + 完成安装和显示，可以通过 `hexo clean && hexo g && hexo s` 来进行本地预览, hexo clean 为必须选项。
 + **PS:不要使用 `hexo g -d 或者 hexo d -g` 这类组合命令。**详情见: [Issue 7](https://github.com/MikeCoder/hexo-tag-cloud/issues/7)
 
