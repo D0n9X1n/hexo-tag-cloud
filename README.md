@@ -38,6 +38,8 @@ And you can see online live demo by clicking [here](https://mhexo.github.io/arch
 <% } %>
 ```
 
+If you are using [icarus](https://github.com/ppoffice/hexo-theme-icarus), please see Issue #31.
+
 #### For swig Users
 + Here we use theme Next as an example.
 + You should insert the following code into `next/layout/_macro/sidebar.swig`.

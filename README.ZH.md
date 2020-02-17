@@ -37,6 +37,7 @@ Hexo 标签云插件
   </div>
 <% } %>
 ```
+如果你使用的是 [icarus](https://github.com/ppoffice/hexo-theme-icarus) 主题, 请查阅 Issue #31.
 
 #### 对于 swig 用户
 + 这里以 Next 主题为例。
@@ -60,7 +61,6 @@ Hexo 标签云插件
 + 这里以 Apollo 主题为例
 + 找到 `apollo/layout/archive.jade` 文件，并且把 container 代码块修改为如下内容:
 ```
-...
 block container
     include mixins/post
     .archive
@@ -73,24 +73,20 @@ block container
                 !=tagcloud()
             !=tagcloud()
     +postList()
-...
 ```
 
 #### 最后一步
 + 完成安装和显示，可以通过 `hexo clean && hexo g && hexo s` 来进行本地预览, hexo clean 为必须选项。
 + **PS:不要使用 `hexo g -d 或者 hexo d -g` 这类组合命令。**详情见: [Issue 7](https://github.com/MikeCoder/hexo-tag-cloud/issues/7)
 
-## TODO
-看 [Todo.md](./TODO.md)
-
 ## Troubleshooting
 提交 issue 和截图以及 log
-
 
 ## 自定义
 现在 hexo-tag-cloud 插件支持自定义啦。非常简单的步骤就可以改变你的标签云的字体和颜色，还有突出高亮。
 
 + 在你的博客根目录，找到 *_config.yml* 文件然后添加如下的配置项:
+
 ```
 # hexo-tag-cloud
 tag_cloud:
