@@ -30,7 +30,7 @@ And you can see online live demo by clicking [here](https://mhexo.github.io/arch
   <div class="widget-wrap">
     <h3 class="widget-title"><%= __('tagcloud') %></h3>
     <div id="myCanvasContainer" class="widget tagcloud">
-      <canvas width="250" height="250" id="resCanvas" style="width=100%">
+      <canvas width="250" height="250" id="resCanvas" style="width:100%">
         <%- tagcloud() %>
       </canvas>
     </div>
@@ -48,7 +48,7 @@ And you can see online live demo by clicking [here](https://mhexo.github.io/arch
   <div class="widget-wrap">
     <h3 class="widget-title">Tag Cloud</h3>
     <div id="myCanvasContainer" class="widget tagcloud">
-      <canvas width="250" height="250" id="resCanvas" style="width=100%">
+      <canvas width="250" height="250" id="resCanvas" style="width:100%">
         {{ list_tags() }}
       </canvas>
     </div>
@@ -70,7 +70,7 @@ block container
         script(type='text/javascript', charset='utf-8', src=url_for("/js/tagcloud.js"))
         script(type='text/javascript', charset='utf-8', src=url_for("/js/tagcanvas.js"))
         #myCanvasContainer.widget.tagcloud(align='center')
-            canvas#resCanvas(width='500', height='500', style='width=100%')
+            canvas#resCanvas(width='500', height='500', style='width:100%')
                 !=tagcloud()
             !=tagcloud()
     +postList()
