@@ -124,8 +124,5 @@ tag_cloud:
 ## Troubleshooting
 Submit issue please
 
-## TODO
-See [Todo.md](./TODO.md)
-
 # Thanks
 + **[TagCanvas](http://www.goat1000.com/tagcanvas.php)**
