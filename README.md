@@ -79,6 +79,27 @@ block container
 ...
 ```
 
+#### For pug Users
+
++ Here we use theme Butterfly as an example.
++ Then find this file: `Butterfly/layout/includes/widget/card_tags.pug` 
++ Modiefy the file as following code:
+
+```
+if site.tags.length
+  .card-widget.card-tags
+    .card-content
+      .item-headline
+        i.fa.fa-tags(aria-hidden="true")
+        span= _p('aside.card_tags')
+        script(type="text/javascript" charset="utf-8" src="/js/tagcloud.js")
+        script(type="text/javascript" charset="utf-8" src="/js/tagcanvas.js")
+        #myCanvasContainer.widget.tagcloud(align='center')
+          canvas#resCanvas(width='200', height='200', style='width=100%')
+            != tagcloud()
+          != tagcloud({min_font: 16, max_font: 24, amount: 50, color: true, start_color: '#999', end_color: '#99a9bf'})
+```
+
 
 #### Last step
 + use `hexo clean && hexo g && hexo s` to see the change. hexo clean must be done before use `hexo g`.
