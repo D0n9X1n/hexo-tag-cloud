@@ -38,7 +38,7 @@ And you can see online live demo by clicking [here](https://mhexo.github.io/arch
 <% } %>
 ```
 
-If you are using [icarus](https://github.com/ppoffice/hexo-theme-icarus), please see Issue #31.
+If you are using [icarus](https://github.com/ppoffice/hexo-theme-icarus), please see [Issue #31](https://github.com/MikeCoder/hexo-tag-cloud/issues/31).
 
 #### For swig Users
 + Here we use theme Next as an example.

@@ -37,7 +37,7 @@ Hexo 标签云插件
   </div>
 <% } %>
 ```
-如果你使用的是 [icarus](https://github.com/ppoffice/hexo-theme-icarus) 主题, 请查阅 Issue #31.
+如果你使用的是 [icarus](https://github.com/ppoffice/hexo-theme-icarus) 主题, 请查阅 [Issue #31](https://github.com/MikeCoder/hexo-tag-cloud/issues/31).
 
 #### 对于 swig 用户
 + 这里以 Next 主题为例。
