@@ -117,7 +117,7 @@ tag_cloud:
     textHeight: 25
     outlineColor: '#E2E1D1'
     maxSpeed: 0.5
-
+    pauseOnSelected: false # true 意味着当选中对应 tag 时,停止转动
 ```
 + 然后使用 `hexo c && hexo g && hexo s` 来享受属于你自己的独一无二的标签云吧。
 

@@ -118,6 +118,7 @@ tag_cloud:
     textHeight: 25
     outlineColor: '#E2E1D1'
     maxSpeed: 0.5 # range from [0.01 ~ 1]
+    pauseOnSelected: false # true means pause the cloud tag movement when highlight a tag
 ```
 + then use `hexo clean && hexo g && hexo s` to enjoy your different tag cloud
 
