@@ -1,10 +1,10 @@
 # Hexo Tag Cloud
 
-[![npm version](https://badge.fury.io/js/hexo-tag-cloud.svg)](https://badge.fury.io/js/hexo-tag-cloud)
+![GitHub release (latest SemVer including pre-releases)](https://img.shields.io/github/v/release/D0n9x1n/hexo-tag-cloud?include_prereleases)
 [![Build Status](https://scrutinizer-ci.com/g/MikeCoder/hexo-tag-cloud/badges/build.png?b=master)](https://scrutinizer-ci.com/g/MikeCoder/hexo-tag-cloud/build-status/master)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/MikeCoder/hexo-tag-cloud/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/MikeCoder/hexo-tag-cloud/?branch=master)
 
-[English Version ReadMe](https://github.com/MikeCoder/hexo-tag-cloud/blob/master/README.md)
+[English ReadMe](https://github.com/MikeCoder/hexo-tag-cloud/blob/master/README.md)
 
 Hexo 标签云插件
 
