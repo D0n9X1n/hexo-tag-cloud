@@ -3,12 +3,14 @@
 # Pre-flight (manual, before tagging):
 #   1. Update CHANGELOG.md with the release date.
 #   2. Bump `version` in `package.json` to match the tag (e.g. `v3.0.0` → `3.0.0`).
-#   3. Revert `demo/package.json`'s `hexo-tag-cloud` from `"file:.."` back to
-#      a semver range like `"^3.0.0"` so the deployed demo references the
-#      published package, not a local file: path. We deliberately do NOT use
-#      `prepublishOnly` to mutate this file — that would leave a dirty
-#      working tree and risk corrupted commits.
-#   4. Commit, push, then create+push the `v*` tag.
+#   3. Commit, push, then create+push the `v*` tag.
+#
+# `demo/package.json` is intentionally pinned to `"hexo-tag-cloud": "file:.."`
+# at all times. The demo is excluded from the npm tarball (verify-pack.js
+# enforces) so this never affects published consumers, and keeping it as a
+# local file: ref means the deploy-demo workflow can run on `master` without
+# waiting for npm publication (and avoids the circular dependency where the
+# demo can't build until the package it references is published).
 #
 # Auth: Trusted Publishing via OIDC.
 #   Configure the trusted publisher on npmjs.com:
@@ -70,9 +72,6 @@ jobs:
       - name: Install fixture site dependencies
         run: cd tests/fixtures/hexo-site && npm install --no-audit --no-fund && cd ../../..
 
-      - name: Install landscape-bare fixture dependencies
-        run: cd tests/fixtures/landscape-bare && npm install --no-audit --no-fund && cd ../../..
-
       - name: Verify package.json version matches tag
         run: |
           PKG_VERSION=$(node -p "require('./package.json').version")
@@ -87,13 +86,6 @@ jobs:
           TAG_VERSION=${GITHUB_REF_NAME#v}
           if ! grep -qE "^## \[${TAG_VERSION}\] — [0-9]{4}-[0-9]{2}-[0-9]{2}" CHANGELOG.md; then
             echo "::error::CHANGELOG.md is missing a dated entry for ${TAG_VERSION} (still 'Unreleased'?)"
-            exit 1
-          fi
-
-      - name: Verify demo references published package, not file:..
-        run: |
-          if grep -q '"hexo-tag-cloud": *"file:' demo/package.json; then
-            echo "::error::demo/package.json still references 'file:..' — revert to a semver range before tagging"
             exit 1
           fi
 

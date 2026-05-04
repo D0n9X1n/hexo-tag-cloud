@@ -30,12 +30,19 @@ const SIDEBAR_REL = 'themes/landscape/layout/_partial/sidebar.ejs';
 
 // ------------------------------------------------------------------ helpers
 
-/** Recursive directory copy, skipping node_modules + public + db.json. */
+/**
+ * Recursive directory copy, skipping `node_modules`, `public`, `db.json`, and
+ * `package-lock.json` (the lockfile may be present on the source if a previous
+ * step preinstalled deps; carrying it into the tmpdir would pin
+ * `file:../../..` to the source's depth and break `npm install` in the
+ * deeper tmpdir, see makeTmpFixture comment below).
+ */
 function copyFixture(src, dst) {
   fs.mkdirSync(dst, { recursive: true });
   const entries = fs.readdirSync(src, { withFileTypes: true });
   for (const ent of entries) {
-    if (ent.name === 'node_modules' || ent.name === 'public' || ent.name === 'db.json') {
+    if (ent.name === 'node_modules' || ent.name === 'public'
+        || ent.name === 'db.json' || ent.name === 'package-lock.json') {
       continue;
     }
     const s = path.join(src, ent.name);
@@ -48,6 +55,20 @@ function copyFixture(src, dst) {
 function makeTmpFixture(label) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'htc-installer-' + label + '-'));
   copyFixture(FIXTURE_SRC, dir);
+  // Rewrite the fixture's `file:../../..` self-reference to an absolute path
+  // pinned to REPO_ROOT. The relative form depends on the source's location;
+  // once copied to a tmpdir it would resolve to a different absolute path
+  // (e.g. `/runner/_work` on GHA Linux runners, which has no package.json
+  // → EMISSINGTARGET). The absolute form works regardless of tmpdir depth.
+  const pkgPath = path.join(dir, 'package.json');
+  if (fs.existsSync(pkgPath)) {
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+    if (pkg.dependencies && typeof pkg.dependencies['hexo-tag-cloud'] === 'string'
+        && pkg.dependencies['hexo-tag-cloud'].startsWith('file:')) {
+      pkg.dependencies['hexo-tag-cloud'] = 'file:' + REPO_ROOT;
+      fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n');
+    }
+  }
   return dir;
 }
 
