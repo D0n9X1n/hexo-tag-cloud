@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="<%= config.language %>">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title><%= page.title %> &middot; <%= config.title %></title>
+  <style>
+    body { font-family: -apple-system, "Segoe UI", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; max-width: 720px; margin: 0 auto; padding: 1.5rem; color: #1f2933; line-height: 1.6; }
+    nav { margin-bottom: 1rem; }
+    nav a { color: #0a8eff; text-decoration: none; }
+    article h1 { margin: 0 0 .5rem 0; }
+    article .meta { color: #7b8794; font-size: .9rem; margin-bottom: 1.5rem; }
+    article .tags { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e2eaf1; color: #7b8794; font-size: .9rem; }
+  </style>
+</head>
+<body>
+  <nav><a href="<%- url_for('/') %>">&larr; home</a></nav>
+  <article>
+    <h1><%= page.title %></h1>
+    <p class="meta"><%= date(page.date, 'YYYY-MM-DD') %></p>
+    <%- page.content %>
+    <% if (page.tags && page.tags.length) { %>
+      <div class="tags">
+        tags:
+        <% page.tags.each(function(tag) { %><%= tag.name %> <% }); %>
+      </div>
+    <% } %>
+  </article>
+</body>
+</html>

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="<%= config.language %>">
+<head>
+  <meta charset="utf-8">
+  <title><%= config.title %></title>
+</head>
+<body>
+  <h1><%= config.title %></h1>
+
+  <% if (site.tags.length) { %>
+    <script type="text/javascript" charset="utf-8" src="<%- url_for('/js/tagcloud.js') %>"></script>
+    <script type="text/javascript" charset="utf-8" src="<%- url_for('/js/tagcanvas.js') %>"></script>
+    <div id="myCanvasContainer">
+      <canvas id="resCanvas" width="250" height="250" style="width:100%">
+        <%- tagcloud() %>
+      </canvas>
+    </div>
+  <% } %>
+
+  <ul id="post-list">
+    <% page.posts.each(function(post) { %>
+      <li>
+        <a href="<%- url_for(post.path) %>"><%= post.title %></a>
+      </li>
+    <% }); %>
+  </ul>
+</body>
+</html>

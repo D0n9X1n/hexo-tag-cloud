@@ -1,0 +1,64 @@
+# hexo-tag-cloud live demo. Deployed to GitHub Pages by
+# .github/workflows/deploy-demo.yml. The url + root values match the
+# GH Pages project-page URL: https://d0n9x1n.github.io/hexo-tag-cloud/
+
+title: hexo-tag-cloud demo
+subtitle: 'Tag-cloud rendering with non-ASCII tag names'
+description: 'Live demo of the hexo-tag-cloud Hexo plugin with CJK, Cyrillic, and HTML-special tags.'
+author: D0n9X1n
+language: en
+timezone: UTC
+
+url: https://d0n9x1n.github.io/hexo-tag-cloud/
+root: /hexo-tag-cloud/
+permalink: :title/
+permalink_defaults:
+pretty_urls:
+  trailing_index: true
+  trailing_html: true
+
+source_dir: source
+public_dir: public
+tag_dir: tags
+archive_dir: archives
+category_dir: categories
+code_dir: downloads/code
+i18n_dir: :lang
+skip_render:
+
+new_post_name: :title.md
+default_layout: post
+titlecase: false
+filename_case: 0
+render_drafts: false
+post_asset_folder: false
+relative_link: false
+future: true
+
+index_generator:
+  path: ''
+  per_page: 10
+  order_by: -date
+
+default_category: uncategorized
+category_map:
+tag_map:
+
+date_format: YYYY-MM-DD
+time_format: HH:mm:ss
+
+per_page: 10
+pagination_dir: page
+
+theme: landscape
+
+# hexo-tag-cloud configuration. The six supported keys (case-sensitive)
+# are: textFont, textColor, textHeight, outlineColor, maxSpeed,
+# pauseOnSelected. See wiki/Customization.md for the full reference.
+tag_cloud:
+  textFont:        "Helvetica, 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif"
+  textColor:       '#0a8eff'
+  textHeight:      26
+  outlineColor:    '#e2eaf1'
+  maxSpeed:        0.04
+  pauseOnSelected: true

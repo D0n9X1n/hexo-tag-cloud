@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="<%= config.language %>">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title><%= config.title %></title>
+  <style>
+    body { font-family: -apple-system, "Segoe UI", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; max-width: 920px; margin: 0 auto; padding: 1.5rem; color: #1f2933; line-height: 1.55; }
+    header { border-bottom: 1px solid #e2eaf1; padding-bottom: 1rem; margin-bottom: 1.5rem; }
+    header h1 { margin: 0 0 .25rem 0; font-size: 1.85rem; }
+    header p { margin: 0; color: #52606d; }
+    main { display: grid; grid-template-columns: 1fr 280px; gap: 2.5rem; align-items: start; }
+    @media (max-width: 720px) { main { grid-template-columns: 1fr; } }
+    main ul#post-list { list-style: none; padding: 0; }
+    main ul#post-list li { padding: .75rem 0; border-bottom: 1px solid #f3f6f9; }
+    main ul#post-list li a { font-size: 1.1rem; color: #0a8eff; text-decoration: none; }
+    main ul#post-list li a:hover { text-decoration: underline; }
+    main ul#post-list li .post-tags { display: block; margin-top: .35rem; color: #7b8794; font-size: .85rem; }
+    footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #e2eaf1; color: #7b8794; font-size: .85rem; }
+    footer a { color: #0a8eff; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1><%= config.title %></h1>
+    <p><%= config.subtitle %></p>
+  </header>
+
+  <main>
+    <ul id="post-list">
+      <% page.posts.each(function(post) { %>
+        <li>
+          <a href="<%- url_for(post.path) %>"><%= post.title %></a>
+          <% if (post.tags && post.tags.length) { %>
+            <span class="post-tags">
+              tags:
+              <% post.tags.each(function(tag) { %><%= tag.name %> <% }); %>
+            </span>
+          <% } %>
+        </li>
+      <% }); %>
+    </ul>
+
+    <%- partial('_partial/sidebar') %>
+  </main>
+
+  <footer>
+    Live demo of
+    <a href="https://github.com/D0n9X1n/hexo-tag-cloud">hexo-tag-cloud</a>
+    &middot;
+    <a href="https://github.com/D0n9X1n/hexo-tag-cloud/blob/master/CHANGELOG.md">changelog</a>
+    &middot;
+    <a href="https://github.com/D0n9X1n/hexo-tag-cloud/tree/master/wiki">wiki</a>
+  </footer>
+</body>
+</html>

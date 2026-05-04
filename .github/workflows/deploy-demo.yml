@@ -1,0 +1,135 @@
+name: Deploy demo
+
+# Auto-publish the demo site under demo/ to GitHub Pages.
+#
+# Trigger model:
+#   - workflow_run on the "Tests" workflow → only deploy after tests pass on master.
+#   - workflow_dispatch → manual re-deploy (gated to master in the job `if`).
+#
+# We DO NOT trigger on `push` directly, to avoid publishing a demo from a commit
+# whose tests later fail.
+#
+# One-time maintainer setup (out of scope for this workflow):
+#   GitHub repo Settings → Pages → Source = "GitHub Actions".
+
+on:
+  workflow_run:
+    workflows: [Tests]
+    branches: [master]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Don't cancel an in-flight deploy mid-publish — risk of orphaning the Pages env.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    # Gate: only run when triggered from master AND (for workflow_run) the
+    # upstream workflow concluded successfully.
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/master')
+      || (github.event_name == 'workflow_run'
+          && github.event.workflow_run.conclusion == 'success'
+          && github.event.workflow_run.head_branch == 'master')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          # Need full history (or at least origin/master) for the staleness check.
+          fetch-depth: 0
+
+      # Stale-deploy guard: when triggered by workflow_run, the head_sha may
+      # already have been superseded by a newer master push whose Tests run
+      # has finished and deployed first. Without this check, an older commit's
+      # workflow_run could clobber the demo with stale content.
+      - name: Verify deploying the current master HEAD
+        if: github.event_name == 'workflow_run'
+        id: freshness
+        run: |
+          git fetch --quiet origin master
+          REMOTE_SHA=$(git rev-parse origin/master)
+          HEAD_SHA="${{ github.event.workflow_run.head_sha }}"
+          if [ "$REMOTE_SHA" != "$HEAD_SHA" ]; then
+            echo "::notice::Skipping stale deploy: workflow_run head_sha=$HEAD_SHA but origin/master=$REMOTE_SHA"
+            echo "stale=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "stale=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-node@v4
+        if: steps.freshness.outputs.stale != 'true'
+        with:
+          node-version: 20.x
+
+      # This repo gitignores package-lock.json, so `cache: 'npm'` would fail.
+      - name: Cache npm packages
+        if: steps.freshness.outputs.stale != 'true'
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-demo-${{ hashFiles('package.json', 'demo/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-demo-
+            ${{ runner.os }}-npm-
+
+      # Root install MUST come first so demo/'s `file:..` reference (this repo
+      # as a package) is resolvable.
+      - name: Install root (plugin) dependencies
+        if: steps.freshness.outputs.stale != 'true'
+        run: npm install --no-audit --no-fund
+
+      - name: Install demo site dependencies
+        if: steps.freshness.outputs.stale != 'true'
+        working-directory: demo
+        run: npm install --no-audit --no-fund
+
+      - name: Build demo site (hexo generate)
+        if: steps.freshness.outputs.stale != 'true'
+        working-directory: demo
+        run: |
+          npx hexo clean
+          npx hexo generate
+
+      - name: Verify build output
+        if: steps.freshness.outputs.stale != 'true'
+        run: |
+          test -f demo/public/index.html || { echo "::error::demo/public/index.html missing"; exit 1; }
+          test -f demo/public/js/tagcloud.js || { echo "::error::demo/public/js/tagcloud.js missing — plugin filter did not run"; exit 1; }
+          test -f demo/public/js/tagcanvas.js || { echo "::error::demo/public/js/tagcanvas.js missing — plugin filter did not run"; exit 1; }
+          # Sanity: at least one CJK and one Cyrillic tag URL must appear in
+          # the generated index, proving the non-ASCII fix flowed end-to-end.
+          grep -q '%E4%B8%AD%E6%96%87' demo/public/index.html \
+            || { echo "::error::Expected percent-encoded CJK tag URL not found in demo/public/index.html"; exit 1; }
+          grep -q '%D0%9A%D0%B8%D1%80%D0%B8%D0%BB%D0%BB%D0%B8%D1%86%D0%B0' demo/public/index.html \
+            || { echo "::error::Expected percent-encoded Cyrillic tag URL not found in demo/public/index.html"; exit 1; }
+          echo "Build verification passed."
+
+      - uses: actions/configure-pages@v5
+        if: steps.freshness.outputs.stale != 'true'
+
+      - uses: actions/upload-pages-artifact@v3
+        if: steps.freshness.outputs.stale != 'true'
+        with:
+          path: demo/public
+
+    outputs:
+      stale: ${{ steps.freshness.outputs.stale }}
+
+  deploy:
+    needs: build
+    if: needs.build.outputs.stale != 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

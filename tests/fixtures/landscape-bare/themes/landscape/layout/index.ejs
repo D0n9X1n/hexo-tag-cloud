@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="<%= config.language %>">
+<head>
+  <meta charset="utf-8">
+  <title><%= config.title %></title>
+</head>
+<body>
+  <header>
+    <h1><%= config.title %></h1>
+  </header>
+
+  <main>
+    <ul id="post-list">
+      <% page.posts.each(function(post) { %>
+        <li>
+          <a href="<%- url_for(post.path) %>"><%= post.title %></a>
+        </li>
+      <% }); %>
+    </ul>
+  </main>
+
+  <%- partial('_partial/sidebar') %>
+</body>
+</html>
