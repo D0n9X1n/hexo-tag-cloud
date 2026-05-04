@@ -8,7 +8,8 @@
 ## Purpose
 
 Lift `hexo-tag-cloud`'s engineering harness to parity with sibling
-`hexo-blog-encrypt` (lint, unit + e2e tests, 100 % coverage gate, sharded CI)
+`hexo-blog-encrypt` (lint, unit + e2e tests, 100 % coverage gate, CI on
+Node 20)
 without changing any runtime behavior of `index.js`. This sub-project is the
 rails on which B (refactor + non-ASCII fix), C (AI skill), and D (release)
 will run.
@@ -43,10 +44,16 @@ Added:
 - `tests/helpers/ensureFixtureInstalled.js`
 - `tests/helpers/generateSite.js`
 - `tests/helpers/serveSite.js`
-- `tests/fixtures/hexo-site/{_config.yml,package.json,source/,themes/}` —
-  minimal landscape-themed site that loads `hexo-tag-cloud`
-- `.github/workflows/test.yml` — copy of sibling shape: lint + server (with
-  coverage) + 4-shard Playwright matrix on Node 20
+- `tests/fixtures/hexo-site/{_config.yml,package.json,source/,themes/fixture-theme/}` —
+  minimal hexo site with a custom fixture theme that loads `hexo-tag-cloud`
+  per the README pattern. Stock landscape is NOT used — its partials don't
+  emit the plugin's `<script>` tags, so e2e smoke would fail. Custom
+  fixture theme (an ~10-line `layout/index.ejs`) keeps the e2e independent
+  of any third-party theme.
+- `.github/workflows/test.yml` — copy of sibling shape: lint + server
+  (with coverage) + e2e on Node 20. **Single e2e job** (NOT 4-way sharded);
+  Playwright fails empty shards and A only ships one smoke spec. Sharding
+  re-introduced in D once spec count justifies it.
 - `.gitignore` additions: `coverage/`, `tests/e2e/{playwright-report,test-results}/`,
   `tests/fixtures/hexo-site/{node_modules,public,db.json}`
 
@@ -84,7 +91,9 @@ Removed:
    test:server, kept callable for fast doc-only iteration).
 6. `npm test` — `npm run lint && npm run test:server && npm run test:e2e`.
 7. CI workflow `test.yml` — two jobs (`lint-and-server`, `e2e`); e2e
-   sharded `[1,2,3,4]`; uploads coverage and on-failure Playwright report.
+   single job (NOT sharded — A has one smoke spec; D re-introduces a
+   `[1,2,3,4]` matrix once the spec count justifies it); uploads coverage
+   and on-failure Playwright report.
 8. `index.js` is exercised by mocking `global.hexo`, capturing
    `hexo.extend.filter.register` callbacks, then invoking each captured
    callback under stubbed `hexo-fs` to assert correct file paths and content
