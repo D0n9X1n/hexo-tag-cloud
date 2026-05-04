@@ -18,6 +18,7 @@
     "hexo-generator-tag": "^2",
     "hexo-renderer-ejs": "^2",
     "hexo-renderer-marked": "^7",
+    "hexo-server": "^3",
     "hexo-tag-cloud": "file:.."
   }
 }

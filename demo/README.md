@@ -18,7 +18,10 @@ npx hexo generate
 npx hexo server
 ```
 
-Then open <http://localhost:4000/>.
+Then open <http://localhost:4000/hexo-tag-cloud/> (the `root:
+/hexo-tag-cloud/` setting in `_config.yml` matches the GitHub Pages
+project-page URL, so internal links resolve under that prefix locally
+too).
 
 ## Deployment
 
