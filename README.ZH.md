@@ -102,17 +102,22 @@ if site.tags.length
 + **PS:不要使用 `hexo g -d 或者 hexo d -g` 这类组合命令。**详情见: [Issue 7](https://github.com/MikeCoder/hexo-tag-cloud/issues/7)
 
 ## Troubleshooting
-提交 issue 和截图以及 log
+
+### `&#NN;`(如 `&#43;` 而非 `+`)出现在画布上
+原生 TagCanvas v2.9 将标签文本作为 DOM 字面字符串读取，而原生 hexo 的 `tagcloud()` 助手输出的 HTML 实体由浏览器正确解码。如果在画布上看到字面的实体码，是你的 hexo 构建链在 TagCanvas 读取之前双重转义了 `<a>` 文本内容——最常见的原因是通过 cheerio 重新序列化生成 HTML 的插件（`hexo-asset-image`、自定义 HTML 后处理器等）。请审查你的 hexo 插件列表中接触 `<a>` 文本的项；v3 在 `tests/e2e/smoke.spec.js` 中固化了字面文本往返回归测试作为上游行为的证据。
+
+### 其他问题
+请提交 issue，并附上你的 `npm list`、`_config.yml`，以及 `hexo generate` 之后 `public/js/tagcloud.js` 的内容。
 
 ## 自定义
 现在 hexo-tag-cloud 插件支持自定义啦。非常简单的步骤就可以改变你的标签云的字体和颜色，还有突出高亮。
 
 + 在你的博客根目录，找到 *_config.yml* 文件然后添加如下的配置项:
 
-```
+```yaml
 # hexo-tag-cloud
 tag_cloud:
-    textFont: Trebuchet MS, Helvetica
+    textFont: Trebuchet MS, Helvetica   # v3+ 会为任意单字体值自动追加 CJK 回退族
     textColor: '#333'
     textHeight: 25
     outlineColor: '#E2E1D1'
@@ -120,6 +125,9 @@ tag_cloud:
     pauseOnSelected: false # true 意味着当选中对应 tag 时,停止转动
 ```
 + 然后使用 `hexo c && hexo g && hexo s` 来享受属于你自己的独一无二的标签云吧。
+
+### 非 ASCII 标签（中文/日文/韩文/西里尔字母等）
+v3.0.0 起，中文 / 日文 / 韩文 / 西里尔字母及其他非拉丁字符的标签默认即可正确渲染。默认 `textFont`（以及你提供的任何单字体值）会自动追加跨平台 CJK 回退族（PingFang SC、Hiragino Sans GB、Microsoft YaHei、Source Han Sans CN、Noto Sans CJK SC、sans-serif），主字体缺失的字形会向后一族回退，而不是显示为 `□`。如果你提供多字体值（例如 `'Comic Sans MS, sans-serif'`），系统会原样保留你的值。
 
 ## 致谢
 + **[TagCanvas](http://www.goat1000.com/tagcanvas.php)**

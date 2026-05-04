@@ -106,24 +106,32 @@ if site.tags.length
 + **PS: Don't use the command `hexo g -d or hexo d -g`**, @See [Issue 7](https://github.com/MikeCoder/hexo-tag-cloud/issues/7)
 
 ## Customize
-Now the hexo-tag-cloud plugin support customize feature. It's simple to change the color and the font for the tag cloud.
+Now the hexo-tag-cloud plugin supports customization. It's simple to change the color and the font for the tag cloud.
 
-+ Add these config below to your *_config.yml* file(which under your blog root directory)
++ Add the config below to your *_config.yml* file (in your blog's root directory):
 
-```
+```yaml
 # hexo-tag-cloud
 tag_cloud:
-    textFont: 'Trebuchet MS, Helvetica'
+    textFont: 'Trebuchet MS, Helvetica'   # any single family is auto-extended with a CJK fallback stack (v3+)
     textColor: '#333'
     textHeight: 25
     outlineColor: '#E2E1D1'
-    maxSpeed: 0.5 # range from [0.01 ~ 1]
-    pauseOnSelected: false # true means pause the cloud tag movement when highlight a tag
+    maxSpeed: 0.5            # range from [0.01 ~ 1]
+    pauseOnSelected: false   # true means pause the cloud tag movement when highlighting a tag
 ```
-+ then use `hexo clean && hexo g && hexo s` to enjoy your different tag cloud
++ then run `hexo clean && hexo g && hexo s` to enjoy your customised tag cloud.
+
+### Non-ASCII tags (CJK / Cyrillic / etc.)
+Tags written in Chinese / Japanese / Korean / Cyrillic and other non-Latin scripts render correctly out of the box from v3.0.0. The default `textFont` (and any single-family value you supply) is automatically extended with a cross-platform CJK fallback stack (PingFang SC, Hiragino Sans GB, Microsoft YaHei, Source Han Sans CN, Noto Sans CJK SC, sans-serif), so glyphs that the primary font lacks fall through to the next family rather than rendering as `□`. If you supply a multi-family value such as `'Comic Sans MS, sans-serif'` your value is honoured verbatim.
 
 ## Troubleshooting
-Submit issue please
+
+### `&#NN;` codes (e.g. `&#43;` instead of `+`) appear ON the canvas
+Stock TagCanvas v2.9 reads tag text as a literal DOM string, and stock hexo's `tagcloud()` helper outputs HTML entities that the browser decodes correctly. If you see literal entity codes painted on the canvas, your hexo build chain is double-escaping the `<a>` text content before TagCanvas reads it — most commonly via plugins that re-serialise generated HTML through cheerio (`hexo-asset-image`, custom HTML post-processors, etc.). Audit your hexo plugin list for anything that touches `<a>` text content; v3 ships a regression e2e test (`tests/e2e/smoke.spec.js`) that locks in the literal-text round-trip on a clean fixture as evidence of the upstream behaviour.
+
+### Other issues
+Submit an issue with your `npm list`, `_config.yml`, and the contents of `public/js/tagcloud.js` after `hexo generate`.
 
 # Thanks
 + **[TagCanvas](http://www.goat1000.com/tagcanvas.php)**
