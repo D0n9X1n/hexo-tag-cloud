@@ -1,0 +1,92 @@
+name: Tests
+
+on: [push, pull_request]
+
+jobs:
+  lint-and-server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+
+      - name: Cache npm packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('package.json', 'tests/fixtures/hexo-site/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: Install root dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Install fixture site dependencies
+        run: cd tests/fixtures/hexo-site && npm install --no-audit --no-fund && cd ../../..
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Server tests (with 100% coverage gate)
+        run: npm run test:server
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/
+          retention-days: 7
+
+  e2e:
+    # Sub-project A ships a single smoke spec — no shard matrix yet.
+    # Sub-project D re-introduces sharding once the spec count justifies it.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+
+      - name: Cache npm packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('package.json', 'tests/fixtures/hexo-site/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: Install root dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('package.json') }}
+
+      - name: Install fixture site dependencies
+        run: cd tests/fixtures/hexo-site && npm install --no-audit --no-fund && cd ../../..
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright smoke tests
+        run: npx playwright test --config tests/e2e/playwright.config.js
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            tests/e2e/playwright-report/
+            tests/e2e/test-results/
+          retention-days: 7
