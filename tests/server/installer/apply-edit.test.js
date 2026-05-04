@@ -3,7 +3,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-const { computeApplyAction, NOOP_MESSAGE } =
+const { computeApplyAction, NOOP_MESSAGE, renderUnifiedDiff } =
   require('../../../lib/installer/apply-edit');
 const { resolveTheme } = require('../../../lib/installer/theme-heuristics');
 const { emitManagedBlock } = require('../../../lib/installer/partial-emitter');
@@ -25,6 +25,63 @@ test('insert: empty file → kind=insert; newContent === newBlock', () => {
   });
   assert.equal(result.kind, 'insert');
   assert.equal(result.newContent, NEW_BLOCK);
+});
+
+// --- diff field on insert + force-replace (T10 fix per AC #1) -----------
+
+test('insert: action.diff is a unified diff containing every emitted line as +', () => {
+  const result = computeApplyAction({
+    existingContent: '',
+    newBlock: NEW_BLOCK,
+    recipe: landscape,
+  });
+  assert.equal(typeof result.diff, 'string');
+  assert.ok(result.diff.startsWith('--- before\n+++ after\n'),
+    'diff must use unified-diff headers');
+  assert.ok(result.diff.includes('+<canvas id="resCanvas"'),
+    'diff must include +<canvas line; got: ' + result.diff);
+  assert.ok(result.diff.includes('+<script src="/js/tagcloud.js">'),
+    'diff must include +tagcloud.js line');
+  assert.ok(result.diff.includes('+<script src="/js/tagcanvas.js">'),
+    'diff must include +tagcanvas.js line');
+});
+
+test('insert into non-empty content: diff still shows only the added managed block', () => {
+  const result = computeApplyAction({
+    existingContent: '<aside>existing widget</aside>\n',
+    newBlock: NEW_BLOCK,
+    recipe: landscape,
+  });
+  assert.equal(result.kind, 'insert');
+  // The diff is computed against the EMPTY before-block-state (insert
+  // means there was no block before), so the existing widget is NOT
+  // shown as removed — only the new block lines are shown as additions.
+  assert.ok(result.diff.indexOf('-<aside>') === -1,
+    'diff must NOT mark existing content as deleted on insert');
+  assert.ok(result.diff.includes('+<canvas id="resCanvas"'),
+    'diff must include the new canvas line');
+});
+
+test('force-replace: action.diff shows OLD lines as - and NEW lines as +', () => {
+  const userEdited = NEW_BLOCK.replace('width="500"', 'width="999"');
+  const result = computeApplyAction({
+    existingContent: '<aside>x</aside>\n' + userEdited + '\n',
+    newBlock: NEW_BLOCK,
+    recipe: landscape,
+    force: true,
+  });
+  assert.equal(result.kind, 'force-replace');
+  assert.equal(typeof result.diff, 'string');
+  assert.ok(result.diff.includes('-<canvas id="resCanvas" width="999"'),
+    'diff must mark the user-edited canvas line as removed; got: ' + result.diff);
+  assert.ok(result.diff.includes('+<canvas id="resCanvas" width="500"'),
+    'diff must mark the default canvas line as added');
+});
+
+test('renderUnifiedDiff: exported helper is callable and produces unified-diff format', () => {
+  const out = renderUnifiedDiff('a', 'b', 'old\nold2', 'new\nnew2');
+  assert.equal(out,
+    '--- a\n+++ b\n-old\n-old2\n+new\n+new2');
 });
 
 test('insert: existing partial without markers/legacy → block is appended after a blank line', () => {

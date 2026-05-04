@@ -65,12 +65,12 @@ test('installer (a): dry-run prints diff containing canvas + tagcloud scripts', 
   const tmp = makeTmpFixture('a');
   const r = runBin(['install'], tmp); // explicit subcommand; bare invocation prints USAGE
   expect(r.status, 'expected exit 0; stderr: ' + r.stderr).toBe(0);
-  // Dry-run prints either the diff for force-replace OR the inserted block
-  // length + path. Either way, the EMITTED block (visible in diff or
-  // by re-reading it via stdout doesn't quite work for plain insert),
-  // so the cleanest assertion is on the EMITTED block we can derive
-  // independently: re-run with --apply and assert on the file.
-  expect(r.stdout, 'dry-run should mention the target file path').toContain(SIDEBAR_REL);
+  // Dry-run must print a unified diff containing the canvas + plugin
+  // script tags so the user (or AI agent) can review BEFORE --apply.
+  expect(r.stdout, 'dry-run must include canvas tag in the diff').toContain('<canvas id="resCanvas"');
+  expect(r.stdout, 'dry-run must include /js/tagcloud.js in the diff').toContain('/js/tagcloud.js');
+  expect(r.stdout, 'dry-run must include /js/tagcanvas.js in the diff').toContain('/js/tagcanvas.js');
+  expect(r.stdout, 'dry-run summary should mention target path').toContain(SIDEBAR_REL);
   expect(r.stdout).toMatch(/dry-run.*would write/);
 
   // Verify the file was NOT mutated

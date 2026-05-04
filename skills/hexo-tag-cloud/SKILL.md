@@ -75,7 +75,14 @@ installed as `hexo-theme-<name>` npm packages, pass `--theme-dir
 
 ```
 $ cd ~/blog                                       # site root
-$ npx hexo-tag-cloud install                       # dry-run
+$ npx hexo-tag-cloud install                       # dry-run prints unified diff
+--- before
++++ after
++<!-- hexo-tag-cloud:begin -->
++<canvas id="resCanvas" width="500" height="400" style="margin: 0 auto;"></canvas>
++<script src="/js/tagcanvas.js"></script>
++<script src="/js/tagcloud.js"></script>
++<!-- hexo-tag-cloud:end -->
 [dry-run] would write 187 bytes to themes/landscape/layout/_partial/sidebar.ejs
 (re-run with --apply to write)
 $ npx hexo-tag-cloud install --apply

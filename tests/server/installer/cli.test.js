@@ -155,6 +155,14 @@ test('install landscape: existing partial + dry-run → exit 0, no write', async
   const code = await runCli({ argv: ['install'], cwd, stdout: s.stdout, stderr: s.stderr });
   assert.equal(code, 0);
   assert.match(s.out(), /\[dry-run\] would write/);
+  // T10 fix: dry-run must include the unified diff so users / AI agents
+  // can review the actual content BEFORE --apply (spec AC #1).
+  assert.match(s.out(), /^--- before$/m);
+  assert.match(s.out(), /^\+\+\+ after$/m);
+  assert.ok(s.out().includes('+<canvas id="resCanvas"'),
+    'dry-run stdout must contain the +canvas line; got:\n' + s.out());
+  assert.ok(s.out().includes('+<script src="/js/tagcloud.js">'));
+  assert.ok(s.out().includes('+<script src="/js/tagcanvas.js">'));
   // file was NOT mutated
   const after = fs.readFileSync(partialPath, 'utf8');
   assert.equal(after, '<aside>existing widget</aside>\n');
