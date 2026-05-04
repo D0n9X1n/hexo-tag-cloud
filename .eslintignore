@@ -1,0 +1,9 @@
+demo/
+lib/tagcanvas.js
+coverage/
+tests/fixtures/hexo-site/node_modules/
+tests/fixtures/hexo-site/public/
+tests/e2e/playwright-report/
+tests/e2e/test-results/
+feature-crew/
+node_modules/

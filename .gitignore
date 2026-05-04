@@ -167,3 +167,14 @@ Icon
 Network Trash Folder
 Temporary Items
 .apdisk
+
+
+### hexo-tag-cloud test harness (sub-project A)
+coverage/
+tests/e2e/playwright-report/
+tests/e2e/test-results/
+tests/e2e/.themes.json
+tests/fixtures/hexo-site/node_modules/
+tests/fixtures/hexo-site/public/
+tests/fixtures/hexo-site/db.json
+tests/fixtures/hexo-site/package-lock.json
