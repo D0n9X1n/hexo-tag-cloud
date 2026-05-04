@@ -1,0 +1,22 @@
+{
+  "name": "hexo-tag-cloud-landscape-bare-fixture",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Bare-landscape Hexo fixture used by the install-CLI E2E tests. Not published.",
+  "scripts": {
+    "hexo": "hexo"
+  },
+  "hexo": {
+    "version": "7.3.0"
+  },
+  "dependencies": {
+    "hexo": "^7",
+    "hexo-generator-archive": "^2",
+    "hexo-generator-category": "^2",
+    "hexo-generator-index": "^4",
+    "hexo-generator-tag": "^2",
+    "hexo-renderer-ejs": "^2",
+    "hexo-renderer-marked": "^7",
+    "hexo-tag-cloud": "file:../../.."
+  }
+}

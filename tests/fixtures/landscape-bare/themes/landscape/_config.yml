@@ -1,0 +1,6 @@
+# landscape-bare theme config: no override knobs needed for the install
+# CLI tests. Listed so hexo's theme-loader doesn't complain about a
+# missing config.
+menu:
+  Home: /
+  Archives: /archives

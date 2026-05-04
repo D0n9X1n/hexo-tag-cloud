@@ -1,0 +1,19 @@
+<aside id="sidebar">
+  <% if (site.posts.length) { %>
+    <div class="widget recent-posts">
+      <h3>Recent Posts</h3>
+      <ul>
+        <% site.posts.sort('date', -1).limit(5).each(function(post) { %>
+          <li><a href="<%- url_for(post.path) %>"><%= post.title %></a></li>
+        <% }); %>
+      </ul>
+    </div>
+  <% } %>
+
+  <% if (site.categories.length) { %>
+    <div class="widget categories">
+      <h3>Categories</h3>
+      <%- list_categories(site.categories) %>
+    </div>
+  <% } %>
+</aside>
