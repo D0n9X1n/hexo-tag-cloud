@@ -1,4 +1,5 @@
 // Copyright © 2016 TangDongxin
+// Copyright © 2026 D0n9X1n (v3.0.0 refactor)
 
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the "Software"),
@@ -18,115 +19,58 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-"use strict";
+'use strict';
 
-var fs = require("hexo-fs");
-var pathFn = require("path");
-var Hexo = require("hexo");
-var log = require("hexo-log")({
-  debug: false,
-  silent: false
-});
+const fs   = require('hexo-fs');
+const path = require('path');
+const log  = require('hexo-log')({ debug: false, silent: false });
 
-hexo.extend.filter.register("after_generate", function(post) {
-  var libPath = pathFn.join(
-    pathFn.join(pathFn.join(hexo.base_dir, "node_modules"), "hexo-tag-cloud"),
-    "lib"
-  );
+const { computeOptions }   = require('./lib/options');
+const { renderTagCloudJs } = require('./lib/render');
 
-  var tagcanvasPubPath = pathFn.join(
-    pathFn.join(hexo.public_dir, "js"),
-    "tagcanvas.js"
-  );
-  var tagcloudPubPath = pathFn.join(
-    pathFn.join(hexo.public_dir, "js"),
-    "tagcloud.js"
-  );
+/**
+ * Hexo plugin entry. Registers an `after_generate` filter on the
+ * supplied hexo instance that copies the vendored TagCanvas library
+ * and writes a small bootstrap script into the user's `public/js/`
+ * directory.
+ *
+ * Exposed as the module export so that unit tests (and any future
+ * programmatic embedders) can drive the plugin with a fake hexo
+ * without monkey-patching globals. Hexo's plugin loader does NOT
+ * auto-invoke `module.exports`; see the typeof-guarded auto-register
+ * block below.
+ *
+ * @param {object} hexo - hexo instance (real or test double)
+ */
+function registerHexoTagCloud(hexo) {
+  hexo.extend.filter.register('after_generate', function () {
+    const libDir   = path.join(hexo.base_dir, 'node_modules',
+                               'hexo-tag-cloud', 'lib');
+    const srcLib   = path.join(libDir, 'tagcanvas.js');
+    const destLib  = path.join(hexo.public_dir, 'js', 'tagcanvas.js');
+    const destBoot = path.join(hexo.public_dir, 'js', 'tagcloud.js');
 
-  log.info("---- START COPYING TAG CLOUD FILES ----");
-  fs.copyFile(pathFn.join(libPath, "tagcanvas.js"), tagcanvasPubPath);
+    log.info('---- START COPYING TAG CLOUD FILES ----');
+    fs.copyFile(srcLib, destLib);
 
-  var textFont = "Helvetica";
-  var textColor = "#333";
-  var textHeight = "15";
-  var outlineColor = "#E2E1C1";
-  var maxSpeed = "0.03";
-  var pauseOnSelected = true;
+    const opts = computeOptions(hexo.config.tag_cloud);
+    fs.writeFile(destBoot, renderTagCloudJs(opts));
 
-  if (hexo.config.tag_cloud) {
-    if (hexo.config.tag_cloud.textColor) {
-      textColor = hexo.config.tag_cloud.textColor;
-    }
-    if (hexo.config.tag_cloud.textFont) {
-      textFont = hexo.config.tag_cloud.textFont;
-    }
-    if (hexo.config.tag_cloud.textHeight) {
-      textHeight = hexo.config.tag_cloud.textHeight;
-    }
-    if (hexo.config.tag_cloud.outlineColor) {
-      outlineColor = hexo.config.tag_cloud.outlineColor;
-    }
-    if (hexo.config.tag_cloud.maxSpeed) {
-      maxSpeed = hexo.config.tag_cloud.maxSpeed;
-    }
-    if (hexo.config.tag_cloud.pauseOnSelected != undefined) {
-      pauseOnSelected = hexo.config.tag_cloud.pauseOnSelected;
-    }
-  }
+    log.info('---- END COPYING TAG CLOUD FILES ----');
+  });
+}
 
-  var tagCloudJsContent =
-    " function addLoadEvent(func) {\n" +
-    "     var oldonload = window.onload;\n" +
-    "     if (typeof window.onload != 'function') {\n" +
-    "         window.onload = func;\n" +
-    "     } else {\n" +
-    "         window.onload = function() {\n" +
-    "             oldonload();\n" +
-    "             func();\n" +
-    "         }\n" +
-    "     }\n" +
-    " }\n" +
-    "\n" +
-    " addLoadEvent(function() {\n" +
-    "     console.log('tag cloud plugin rock and roll!');\n" +
-    "\n" +
-    "     try {\n" +
-    "         TagCanvas.textFont = '${textFont}';\n" +
-    "         TagCanvas.textColour = '${textColor}';\n" +
-    "         TagCanvas.textHeight = ${textHeight};\n" +
-    "         TagCanvas.outlineColour = '${outlineColor}';\n" +
-    "         TagCanvas.maxSpeed = ${maxSpeed};\n" +
-    "         TagCanvas.freezeActive = ${pauseOnSelected};\n" +
-    "         TagCanvas.outlineMethod = 'block';\n" +
-    "         TagCanvas.minBrightness = 0.2;\n" +
-    "         TagCanvas.depth = 0.92;\n" +
-    "         TagCanvas.pulsateTo = 0.6;\n" +
-    "         TagCanvas.initial = [0.1,-0.1];\n" +
-    "         TagCanvas.decel = 0.98;\n" +
-    "         TagCanvas.reverse = true;\n" +
-    "         TagCanvas.hideTags = false;\n" +
-    "         TagCanvas.shadow = '#ccf';\n" +
-    "         TagCanvas.shadowBlur = 3;\n" +
-    "         TagCanvas.weight = false;\n" +
-    "         TagCanvas.imageScale = null;\n" +
-    "         TagCanvas.fadeIn = 1000;\n" +
-    "         TagCanvas.clickToFront = 600;\n" +
-    "         TagCanvas.lock = false;\n" +
-    "         TagCanvas.Start('resCanvas');\n" +
-    "         TagCanvas.tc['resCanvas'].Wheel(true)\n" +
-    "     } catch(e) {\n" +
-    "         console.log(e);\n" +
-    "         document.getElementById('myCanvasContainer').style.display = 'none';\n" +
-    "     }\n" +
-    " });\n";
+module.exports = registerHexoTagCloud;
 
-  tagCloudJsContent = tagCloudJsContent.replace("${textFont}", textFont);
-  tagCloudJsContent = tagCloudJsContent.replace("${textColor}", textColor);
-  tagCloudJsContent = tagCloudJsContent.replace("${textHeight}", textHeight);
-  tagCloudJsContent = tagCloudJsContent.replace("${outlineColor}", outlineColor);
-  tagCloudJsContent = tagCloudJsContent.replace("${maxSpeed}", maxSpeed);
-  tagCloudJsContent = tagCloudJsContent.replace("${pauseOnSelected}", pauseOnSelected);
-
-  fs.writeFile(tagcloudPubPath, tagCloudJsContent);
-  log.info("---- END COPYING TAG CLOUD FILES ----");
-});
+// Hexo's plugin loader wraps each plugin's source as
+//   (function(exports, require, module, __filename, __dirname, hexo){ … })
+// and invokes it with the hexo instance as the 6th parameter (see
+// hexo/dist/hexo/index.js, `loadPlugin`). Within that wrapper the
+// identifier `hexo` is a free variable bound to the running site;
+// outside it (e.g. unit tests that `require()` this module directly),
+// it is undefined and the typeof guard skips the auto-register so the
+// tests can drive `registerHexoTagCloud(fakeHexo)` themselves.
+if (typeof hexo !== 'undefined') {
+  // eslint-disable-next-line no-undef
+  registerHexoTagCloud(hexo);
+}
