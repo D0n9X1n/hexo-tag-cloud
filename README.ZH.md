@@ -72,7 +72,7 @@ npx hexo-tag-cloud install-skill --target ~/.config/agent/skills/
 
 ## 如何使用
 #### 安装
-+ 进入到 hexo 的根目录，然后在 `package.json` 中添加依赖: `"hexo-tag-cloud": "2.1.*"`
++ 进入到 hexo 的根目录，然后在 `package.json` 中添加依赖: `"hexo-tag-cloud": "^3.0.0"`
 + 然后执行 `npm install` 命令
 + 然后需要你去修改主题的 tagcloud 的模板，这个依据你的主题而定。
 

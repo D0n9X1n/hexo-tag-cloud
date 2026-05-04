@@ -54,35 +54,21 @@ npm-installed themes (`hexo-theme-<name>`).
 
 ## 3. `tag_cloud` config block (optional)
 
-Add to your site's `_config.yml`:
+Add to your site's `_config.yml`. The six supported keys (case-sensitive):
 
 ```yaml
 tag_cloud:
-  textFont: "Helvetica, 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif"
-  textColour: "#333"
-  textHeight: 26
-  outlineColour: "#E2E1C1"
-  maxSpeed: 0.04
-  freezeActive: true
-  outlineMethod: block
-  minBrightness: 0.2
-  depth: 0.92
-  pulsateTo: 0.6
-  initial: [0.1, -0.1]
-  decel: 0.98
-  reverse: true
-  hideTags: false
-  shadow: "#ccf"
-  shadowBlur: 3
-  weight: false
-  imageScale: null
-  fadeIn: 1000
-  clickToFront: 600
-  lock: false
+  textFont:        "Helvetica"   # single family → CJK fallback auto-appended
+  textColor:       "#333"
+  textHeight:      15
+  outlineColor:    "#E2E1C1"
+  maxSpeed:        0.03
+  pauseOnSelected: true           # freezes rotation under the cursor
 ```
 
-All keys pass through to TagCanvas (see [Customization](Customization.md)).
-Defaults are applied for any key you omit.
+Defaults are applied for any key you omit. See
+[Customization](Customization.md) for a full reference, the CJK
+font-fallback rules, and recipes (dark theme, self-hosted Noto, etc.).
 
 ## 4. Manual install (for unsupported themes)
 

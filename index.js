@@ -21,9 +21,8 @@
 
 'use strict';
 
-const fs   = require('hexo-fs');
+const fsp  = require('fs/promises');
 const path = require('path');
-const log  = require('hexo-log')({ debug: false, silent: false });
 
 const { computeOptions }   = require('./lib/options');
 const { renderTagCloudJs } = require('./lib/render');
@@ -40,21 +39,34 @@ const { renderTagCloudJs } = require('./lib/render');
  * auto-invoke `module.exports`; see the typeof-guarded auto-register
  * block below.
  *
+ * Implementation notes:
+ *  - Uses `node:fs/promises` (Node 18+ built-in) instead of `hexo-fs`
+ *    to avoid pulling in `hexo-fs@0.2.x`'s vulnerable `braces` /
+ *    `chokidar` / `micromatch` transitive deps.
+ *  - Uses `hexo.log` (the live hexo instance's logger) instead of
+ *    importing `hexo-log` directly, removing one more transitive
+ *    audit-flagged path. Falls back to `console` for tests / standalone
+ *    invocation that pass a hexo without a logger.
+ *
  * @param {object} hexo - hexo instance (real or test double)
  */
 function registerHexoTagCloud(hexo) {
-  hexo.extend.filter.register('after_generate', function () {
+  const log = (hexo && hexo.log) || console;
+
+  hexo.extend.filter.register('after_generate', async function () {
     const libDir   = path.join(hexo.base_dir, 'node_modules',
                                'hexo-tag-cloud', 'lib');
     const srcLib   = path.join(libDir, 'tagcanvas.js');
-    const destLib  = path.join(hexo.public_dir, 'js', 'tagcanvas.js');
-    const destBoot = path.join(hexo.public_dir, 'js', 'tagcloud.js');
+    const destDir  = path.join(hexo.public_dir, 'js');
+    const destLib  = path.join(destDir, 'tagcanvas.js');
+    const destBoot = path.join(destDir, 'tagcloud.js');
 
     log.info('---- START COPYING TAG CLOUD FILES ----');
-    fs.copyFile(srcLib, destLib);
+    await fsp.mkdir(destDir, { recursive: true });
+    await fsp.copyFile(srcLib, destLib);
 
     const opts = computeOptions(hexo.config.tag_cloud);
-    fs.writeFile(destBoot, renderTagCloudJs(opts));
+    await fsp.writeFile(destBoot, renderTagCloudJs(opts));
 
     log.info('---- END COPYING TAG CLOUD FILES ----');
   });

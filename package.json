@@ -41,10 +41,6 @@
   "peerDependencies": {
     "hexo": ">=5"
   },
-  "dependencies": {
-    "hexo-fs": "^0.2.2",
-    "hexo-log": "^0.2.0"
-  },
   "devDependencies": {
     "@playwright/test": "^1.45",
     "c8": "^10",

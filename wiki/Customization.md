@@ -1,66 +1,57 @@
 # Customization
 
-Every key under `tag_cloud:` in your site's `_config.yml` is passed through
-to TagCanvas. The plugin merges your overrides on top of opinionated
-defaults (CJK-friendly font stack, gentle drift speed, mild shadow).
+The `tag_cloud:` block in your site's `_config.yml` controls the cloud's
+appearance. v3.0.0 supports six keys (mirroring the v2 surface plus a
+v3-only CJK font fallback):
 
-## Full reference
+## Reference
 
 | key | default | type | description |
 |---|---|---|---|
-| `textFont` | `"Helvetica, 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif"` | string | font stack; quote families with spaces |
-| `textColour` | `"#333"` | CSS color | tag text color |
-| `textHeight` | `26` | px | tag text size |
-| `outlineColour` | `"#E2E1C1"` | CSS color | outline drawn around the active tag |
-| `outlineMethod` | `"block"` | enum | one of `block`, `colour`, `outline`, `classic`, `none` |
-| `outlineThickness` | `2` | px | outline line width |
-| `maxSpeed` | `0.04` | float | upper bound on rotation speed |
-| `minSpeed` | `0` | float | lower bound on rotation speed |
-| `decel` | `0.95` | float (0–1) | inertia decay per frame |
-| `reverse` | `true` | boolean | reverse direction of tag-cloud rotation |
-| `freezeActive` | `true` | boolean | freeze rotation when the cursor hovers a tag |
-| `freezeDecel` | `0.5` | float | decel applied during freeze |
-| `depth` | `0.92` | float (0–1) | perceived depth; smaller = flatter |
-| `minBrightness` | `0.2` | float (0–1) | minimum tag brightness in the back |
-| `pulsateTo` | `0.6` | float (0–1) | brightness oscillation for inactive tags |
-| `pulsateTime` | `3` | seconds | full pulsation cycle |
-| `initial` | `[0.1, -0.1]` | `[x, y]` floats | initial rotation vector |
-| `hideTags` | `false` | boolean | hide tags facing away |
-| `shadow` | `"#ccf"` | CSS color | tag shadow color |
-| `shadowBlur` | `3` | px | shadow blur radius |
-| `shadowOffset` | `[0, 0]` | `[x, y]` px | shadow offset |
-| `weight` | `false` | boolean | scale tag size by post count |
-| `weightMode` | `"size"` | enum | `size` or `colour` (when `weight: true`) |
-| `weightFrom` | `null` | string | data attribute for weight (defaults to anchor frequency) |
-| `weightSize` | `1` | float | weight scaling factor |
-| `weightSizeMin` | `null` | px | minimum weighted size |
-| `weightSizeMax` | `null` | px | maximum weighted size |
-| `imageScale` | `null` | float | scale for image tags (n/a for text) |
-| `imagePosition` | `null` | enum | `top`, `bottom`, `left`, `right`, `centre` |
-| `fadeIn` | `1000` | ms | fade-in duration on first load |
-| `clickToFront` | `600` | ms | animation when clicking a back-facing tag |
-| `lock` | `false` | `false`/`x`/`y`/`xy` | lock rotation axis |
-| `wheelZoom` | `true` | boolean | mouse-wheel zoom |
-| `noSelect` | `true` | boolean | disable text selection over the canvas |
+| `textFont` | `"Helvetica"` (with v3 CJK fallback stack auto-appended) | string | font stack for tag labels; quote families with spaces |
+| `textColor` | `"#333"` | CSS color | tag text color |
+| `textHeight` | `15` | px | tag text size |
+| `outlineColor` | `"#E2E1C1"` | CSS color | outline drawn around the active tag |
+| `maxSpeed` | `0.03` | float | upper bound on rotation speed (0–1 range, smaller = slower) |
+| `pauseOnSelected` | `true` | boolean | freeze rotation when the cursor hovers a tag |
 
-If a key isn't in this table, TagCanvas may still understand it — refer to
-the [TagCanvas options reference](https://www.goat1000.com/tagcanvas-config.php)
-and add the key under `tag_cloud:` in `_config.yml`. The plugin doesn't
-validate keys; unknown keys are forwarded to TagCanvas as-is.
+Keys outside this list are silently ignored by `lib/options.js`. The
+plugin renders only these six options through to TagCanvas; passing
+arbitrary TagCanvas keys via `_config.yml` is on the roadmap for a
+future v3.x release (see issue tracker).
+
+## CJK font fallback (v3.0.0)
+
+If you supply `textFont` as a single family name (no comma) the plugin
+**automatically appends** a cross-platform CJK fallback stack
+(`PingFang SC`, `Hiragino Sans GB`, `Microsoft YaHei`, `Source Han Sans CN`,
+`Noto Sans CJK SC`, `sans-serif`) so non-Latin glyphs that the primary
+font lacks fall through to the next family rather than rendering as `□`.
+
+If you supply a multi-family value (with commas) it is honored verbatim
+— this is the escape hatch for users who want full control.
+
+```yaml
+# Single family — CJK stack auto-appended:
+tag_cloud:
+  textFont: "Trebuchet MS"
+
+# Multi-family — passed through unchanged:
+tag_cloud:
+  textFont: "'Comic Sans MS', sans-serif"
+```
 
 ## Canvas size
 
-The canvas dimensions live in your theme partial, not `_config.yml`:
+Canvas width / height live in your theme partial, not `_config.yml`:
 
 ```html
 <canvas width="250" height="250" id="resCanvas" style="width:100%"></canvas>
 ```
 
-Or pass them through the AI-assisted install:
-
-```bash
-npx hexo-tag-cloud install --apply --canvas-width 500 --canvas-height 400
-```
+The AI-assisted installer accepts `--canvas-width` / `--canvas-height`
+flags to set these at install time; see
+[Installation](Installation.md).
 
 ## Recipes
 
@@ -68,49 +59,34 @@ npx hexo-tag-cloud install --apply --canvas-width 500 --canvas-height 400
 
 ```yaml
 tag_cloud:
-  textColour: "#fff"
-  outlineColour: "transparent"
-  shadow: "rgba(0,0,0,0.4)"
-  shadowBlur: 8
-  outlineMethod: none
+  textColor: "#fff"
+  outlineColor: "#222"
+  textHeight: 18
 ```
 
-### Slow + classy
+### Slow + steady
 
 ```yaml
 tag_cloud:
-  maxSpeed: 0.02
-  decel: 0.99
-  pulsateTo: 0.85
-  fadeIn: 2000
+  maxSpeed: 0.01
+  pauseOnSelected: true
 ```
 
-### Weighted by post count
+### Self-hosted CJK font
 
 ```yaml
 tag_cloud:
-  weight: true
-  weightMode: size
-  weightSizeMin: 14
-  weightSizeMax: 36
+  textFont: "'Noto Sans CJK SC', sans-serif"
 ```
 
-(Requires `<%- tagcloud() %>` output to include weights — Hexo's built-in
-helper does, by default.)
-
-### Static (no rotation)
-
-```yaml
-tag_cloud:
-  maxSpeed: 0
-  initial: [0, 0]
-  lock: xy
-```
+(With a `@font-face` declaration in your theme CSS pointing at a
+self-hosted Noto Sans CJK woff2 file. The `, sans-serif` suffix
+disables the auto-appended fallback stack.)
 
 ## ESM-friendly setup
 
-If your build pipeline is ESM-strict, `tagcloud.js` is a vanilla
-side-effect script (no `import/export`) and `tagcanvas.js` is the upstream
-TagCanvas IIFE. Both are emitted under `public/js/` and need to be loaded
-via `<script src="...">` (not `import`). The `tag_cloud` config block does
-not require any extra ESM wiring.
+`tagcloud.js` is a vanilla side-effect script (no `import/export`) and
+`tagcanvas.js` is the upstream TagCanvas IIFE. Both are emitted under
+`public/js/` and need to be loaded via `<script src="...">` (not
+`import`). The `tag_cloud` config block does not require any extra ESM
+wiring.

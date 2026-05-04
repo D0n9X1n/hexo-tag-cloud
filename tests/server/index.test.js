@@ -5,10 +5,10 @@
 // v3 contract:
 //   `module.exports = function(hexo) { hexo.extend.filter.register(...) }`
 //
-// We stub `hexo-fs` and `hexo-log` via `require.cache` injection (Node 18+
-// compatible, no experimental flags). Then we load index.js once,
-// invoke the exported factory with a fake hexo instance per test case,
-// fire the captured filter, and assert on captured side effects.
+// We stub `fs/promises` via `require.cache` injection (Node 18+
+// compatible, no experimental flags). Note: the bare `fs/promises`
+// specifier (NOT `node:fs/promises`) is required for cache injection
+// to take effect — `node:`-prefixed builtins bypass user cache.
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -27,6 +27,7 @@ let captured;
 
 function resetCaptures() {
   captured = {
+    mkdir: [],
     copyFile: [],
     writeFile: [],
     log: { info: [], warn: [], error: [], debug: [] },
@@ -47,21 +48,20 @@ function clearIndexCache() {
   delete require.cache[require.resolve(path.join(REPO_ROOT, 'lib', 'render.js'))];
 }
 
-function makeHexoFsStub() {
+function makeFspStub() {
   return {
-    copyFile:  (src, dest) => { captured.copyFile.push({ src, dest }); },
-    writeFile: (dest, content) => { captured.writeFile.push({ dest, content }); },
+    mkdir:     (dir, opts) => { captured.mkdir.push({ dir, opts }); return Promise.resolve(); },
+    copyFile:  (src, dest) => { captured.copyFile.push({ src, dest }); return Promise.resolve(); },
+    writeFile: (dest, content) => { captured.writeFile.push({ dest, content }); return Promise.resolve(); },
   };
 }
 
-function makeHexoLogStub() {
-  return function makeLogger() {
-    return {
-      info:  (msg) => { captured.log.info.push(msg); },
-      warn:  (msg) => { captured.log.warn.push(msg); },
-      error: (msg) => { captured.log.error.push(msg); },
-      debug: (msg) => { captured.log.debug.push(msg); },
-    };
+function makeFakeLog() {
+  return {
+    info:  (msg) => { captured.log.info.push(msg); },
+    warn:  (msg) => { captured.log.warn.push(msg); },
+    error: (msg) => { captured.log.error.push(msg); },
+    debug: (msg) => { captured.log.debug.push(msg); },
   };
 }
 
@@ -75,6 +75,7 @@ function makeFakeHexo(opts) {
     base_dir:   '/site',
     public_dir: '/site/public',
     config,
+    log: makeFakeLog(),
     extend: {
       filter: {
         register: (name, fn) => filters.push({ name, fn }),
@@ -84,10 +85,9 @@ function makeFakeHexo(opts) {
   };
 }
 
-function loadAndFire(opts) {
+async function loadAndFire(opts) {
   resetCaptures();
-  stubModule('hexo-fs', makeHexoFsStub());
-  stubModule('hexo-log', makeHexoLogStub());
+  stubModule('fs/promises', makeFspStub());
   clearIndexCache();
 
   const factory = require(INDEX_PATH);
@@ -101,7 +101,7 @@ function loadAndFire(opts) {
     'expected exactly one filter registration');
   assert.equal(fakeHexo._filters[0].name, 'after_generate');
 
-  fakeHexo._filters[0].fn({ sentinel: true });
+  await fakeHexo._filters[0].fn({ sentinel: true });
   return { captured, fakeHexo };
 }
 
@@ -126,28 +126,63 @@ test('exports a factory; does NOT touch global.hexo', () => {
   // (the v2 implementation crashed at require-time without it).
   delete global.hexo;
   resetCaptures();
-  stubModule('hexo-fs', makeHexoFsStub());
-  stubModule('hexo-log', makeHexoLogStub());
+  stubModule('fs/promises', makeFspStub());
   clearIndexCache();
   const factory = require(INDEX_PATH);
   assert.equal(typeof factory, 'function');
   assert.equal(captured.copyFile.length, 0, 'no side effects at require time');
 });
 
-test('factory registers exactly one after_generate filter', () => {
-  const { fakeHexo } = loadAndFire({});
+test('factory registers exactly one after_generate filter', async () => {
+  const { fakeHexo } = await loadAndFire({});
   assert.equal(fakeHexo._filters.length, 1);
   assert.equal(fakeHexo._filters[0].name, 'after_generate');
 });
 
-test('filter writes correct file paths', () => {
-  loadAndFire({});
+test('filter writes correct file paths', async () => {
+  await loadAndFire({});
   assertFileWrites();
 });
 
-test('filter logs start and end messages', () => {
-  loadAndFire({});
+test('filter creates the public/js directory before writing', async () => {
+  await loadAndFire({});
+  assert.equal(captured.mkdir.length, 1, 'mkdir called once');
+  assert.equal(captured.mkdir[0].dir, '/site/public/js');
+  assert.deepEqual(captured.mkdir[0].opts, { recursive: true });
+});
+
+test('filter logs start and end messages', async () => {
+  await loadAndFire({});
   assert.deepEqual(captured.log.info, [
+    '---- START COPYING TAG CLOUD FILES ----',
+    '---- END COPYING TAG CLOUD FILES ----',
+  ]);
+});
+
+test('filter falls back to console.log when hexo.log is absent', async () => {
+  // Coverage for `(hexo && hexo.log) || console` branch.
+  resetCaptures();
+  stubModule('fs/promises', makeFspStub());
+  clearIndexCache();
+  const factory = require(INDEX_PATH);
+  const filters = [];
+  const fakeHexo = {
+    base_dir: '/site',
+    public_dir: '/site/public',
+    config: {},
+    extend: { filter: { register: (n, fn) => filters.push({ name: n, fn }) } },
+  };
+  factory(fakeHexo);
+  // Replace console temporarily to capture the fallback path.
+  const origInfo = console.info;
+  const calls = [];
+  console.info = (msg) => calls.push(msg);
+  try {
+    await filters[0].fn();
+  } finally {
+    console.info = origInfo;
+  }
+  assert.deepEqual(calls, [
     '---- START COPYING TAG CLOUD FILES ----',
     '---- END COPYING TAG CLOUD FILES ----',
   ]);
@@ -155,8 +190,8 @@ test('filter logs start and end messages', () => {
 
 // --- behavioural matrix --------------------------------------------------
 
-test('default config (no tag_cloud) → defaults flow through', () => {
-  loadAndFire({});
+test('default config (no tag_cloud) → defaults flow through', async () => {
+  await loadAndFire({});
   const js = getWrittenJs();
   assert.match(js, /TagCanvas\.textColour = "#333";/);
   assert.match(js, /TagCanvas\.textHeight = 15;/);
@@ -166,26 +201,26 @@ test('default config (no tag_cloud) → defaults flow through', () => {
   assert.match(js, /Noto Sans CJK SC/, 'CJK fallback is in default font');
 });
 
-test('empty tag_cloud {} → defaults', () => {
-  loadAndFire({ tag_cloud: {} });
+test('empty tag_cloud {} → defaults', async () => {
+  await loadAndFire({ tag_cloud: {} });
   const js = getWrittenJs();
   assert.match(js, /TagCanvas\.textColour = "#333";/);
 });
 
-test('user textFont (single family) → CJK fallback appended', () => {
-  loadAndFire({ tag_cloud: { textFont: 'Trebuchet MS' } });
+test('user textFont (single family) → CJK fallback appended', async () => {
+  await loadAndFire({ tag_cloud: { textFont: 'Trebuchet MS' } });
   const js = getWrittenJs();
   assert.match(js, /TagCanvas\.textFont = "Trebuchet MS, .*Noto Sans CJK SC.*";/);
 });
 
-test('user textFont (multi-family) → passes through unchanged', () => {
-  loadAndFire({ tag_cloud: { textFont: 'Trebuchet MS, sans-serif' } });
+test('user textFont (multi-family) → passes through unchanged', async () => {
+  await loadAndFire({ tag_cloud: { textFont: 'Trebuchet MS, sans-serif' } });
   const js = getWrittenJs();
   assert.match(js, /TagCanvas\.textFont = "Trebuchet MS, sans-serif";/);
 });
 
-test('all six knobs together', () => {
-  loadAndFire({ tag_cloud: {
+test('all six knobs together', async () => {
+  await loadAndFire({ tag_cloud: {
     textFont:        'Comic Sans MS, sans-serif',
     textColor:       '#abcdef',
     textHeight:      25,
@@ -202,20 +237,20 @@ test('all six knobs together', () => {
   assert.match(js, /TagCanvas\.freezeActive = true;/);
 });
 
-test('pauseOnSelected: false → freezeActive = false (regression for A defaulting bug)', () => {
-  loadAndFire({ tag_cloud: { pauseOnSelected: false } });
+test('pauseOnSelected: false → freezeActive = false (regression for A defaulting bug)', async () => {
+  await loadAndFire({ tag_cloud: { pauseOnSelected: false } });
   assert.match(getWrittenJs(), /TagCanvas\.freezeActive = false;/);
 });
 
-test('textHeight: 0 → emits literal 0 (regression for `||` defaulting)', () => {
-  loadAndFire({ tag_cloud: { textHeight: 0 } });
+test('textHeight: 0 → emits literal 0 (regression for `||` defaulting)', async () => {
+  await loadAndFire({ tag_cloud: { textHeight: 0 } });
   assert.match(getWrittenJs(), /TagCanvas\.textHeight = 0;/);
 });
 
 // --- bug 1 regression (e2e via the full pipeline) -----------------------
 
-test('bug 1 regression: textFont with $& survives the full pipeline', () => {
-  loadAndFire({ tag_cloud: { textFont: 'My$&Font' } });
+test('bug 1 regression: textFont with $& survives the full pipeline', async () => {
+  await loadAndFire({ tag_cloud: { textFont: 'My$&Font' } });
   const js = getWrittenJs();
   assert.match(js, /TagCanvas\.textFont = "My\$&Font, .*Noto Sans CJK SC.*";/);
   assert.ok(!js.includes('${textFont}'),
@@ -224,8 +259,8 @@ test('bug 1 regression: textFont with $& survives the full pipeline', () => {
 
 // --- snapshot lock -------------------------------------------------------
 
-test('snapshot — default-config tagcloud.js bytes are stable', () => {
-  loadAndFire({});
+test('snapshot — default-config tagcloud.js bytes are stable', async () => {
+  await loadAndFire({});
   const actual = getWrittenJs();
   if (!fs.existsSync(SNAPSHOT_DEFAULT) || process.env.UPDATE_SNAPSHOTS) {
     fs.mkdirSync(path.dirname(SNAPSHOT_DEFAULT), { recursive: true });
@@ -249,8 +284,7 @@ test('auto-registers when loaded with `hexo` set as a free variable', () => {
   // global lookup chain in the wrapper-less case). Setting it before
   // loading proves the guard branch fires the registration.
   resetCaptures();
-  stubModule('hexo-fs', makeHexoFsStub());
-  stubModule('hexo-log', makeHexoLogStub());
+  stubModule('fs/promises', makeFspStub());
   clearIndexCache();
 
   const fakeHexo = makeFakeHexo({});

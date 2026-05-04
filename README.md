@@ -77,7 +77,7 @@ below still work — the CLI just automates them.
 ## How to Use
 
 #### Install
-+ go into your hexo system folder, and add depandence `"hexo-tag-cloud": "2.1.*"` to `package.json`
++ go into your hexo system folder, and add depandence `"hexo-tag-cloud": "^3.0.0"` to `package.json`
 + then do *npm install* command
 + then you need to change your theme layout file and add the following content to that file depended on your render system.
 

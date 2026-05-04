@@ -60,10 +60,11 @@ If you see your tags rendering as before, you are done.
 
 ### 3. (Optional) Adopt the AI-assisted installer
 
-Run the installer in dry-run first so you can review the unified diff:
+Run the installer in dry-run first so you can review the unified diff
+(bare `install` is the dry-run; pass `--apply` to write):
 
 ```bash
-npx hexo-tag-cloud install --dry-run
+npx hexo-tag-cloud install
 ```
 
 Then apply:

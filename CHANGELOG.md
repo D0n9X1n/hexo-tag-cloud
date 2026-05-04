@@ -36,9 +36,10 @@ foundational refactor across the entire codebase.
 - **`npx hexo-tag-cloud install`** CLI for one-command theme installation.
   Detects landscape, NexT, Butterfly, Icarus, Fluid, and falls back to a
   generic recipe; writes a managed block (`<!-- hexo-tag-cloud BEGIN/END -->`)
-  to the theme's sidebar partial. Supports `--dry-run` (prints unified diff,
-  exits 0), `--apply` (writes the change), `--force` (overwrites a managed
-  block already present), and `--theme <name>` (pin a theme heuristic).
+  to the theme's sidebar partial. Defaults to a dry-run that prints the
+  unified diff and exits 0; pass `--apply` to write the change. Other
+  flags: `--force` (overwrite a user-edited managed block, used with
+  `--apply`) and `--theme <name>` (pin a theme heuristic).
 - **`npx hexo-tag-cloud install-skill`** subcommand that copies the bundled
   Claude skill to a target directory.
 - **Bundled Claude skill** at `skills/hexo-tag-cloud/` with `SKILL.md`,
