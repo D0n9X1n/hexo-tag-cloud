@@ -26,7 +26,9 @@ cscope.po.out
 
 
 ### Xcode template
-build/
+# NOTE: bare `build/` was the original Xcode-template entry. Removed in v3.0.0
+# so we can track `build/verify-pack.js` (a release script). Restore only if
+# this repo ever vendors an Xcode project alongside the npm package.
 *.pbxuser
 !default.pbxuser
 *.mode1v3
