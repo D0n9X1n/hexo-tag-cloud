@@ -48,3 +48,47 @@ test('plugin scripts are served and tagcloud.js bootstraps TagCanvas', async ({ 
     'tagcanvas.js must be a non-trivial library bundle'
   ).toBeGreaterThan(1000);
 });
+
+test('TagCanvas loads CJK / Cyrillic / HTML-special tags from the DOM (B/T7)',
+    async ({ page, siteUrl }) => {
+  await page.goto(siteUrl + '/');
+  await page.waitForFunction(() => (
+    // eslint-disable-next-line no-undef
+    typeof TagCanvas !== 'undefined' &&
+    // eslint-disable-next-line no-undef
+    TagCanvas.tc && TagCanvas.tc.resCanvas &&
+    // eslint-disable-next-line no-undef
+    Array.isArray(TagCanvas.tc.resCanvas.taglist) &&
+    // eslint-disable-next-line no-undef
+    TagCanvas.tc.resCanvas.taglist.length > 0
+  ));
+
+  const result = await page.evaluate(() => {
+    // eslint-disable-next-line no-undef
+    const tc = TagCanvas.tc.resCanvas;
+    const texts = (tc.taglist || []).map((t) => t.text_original);
+    // eslint-disable-next-line no-undef
+    const cv = document.getElementById('resCanvas');
+    const data = cv.getContext('2d').getImageData(0, 0, cv.width, cv.height).data;
+    let opaque = 0;
+    for (let i = 0; i < data.length; i += 4) if (data[i + 3] > 0) opaque++;
+    return { texts, opaque };
+  });
+
+  // Spec AC #4 — superset of CJK / Cyrillic / `+` tags.
+  for (const required of ['中文', '日本語', '한국어', 'Привет', 'C++']) {
+    expect(result.texts,
+      `missing required tag "${required}"; got: ${JSON.stringify(result.texts)}`
+    ).toContain(required);
+  }
+
+  // T5 regression — HTML-special characters render literally, not
+  // double-decoded into different glyphs. See docs/notes/2026-05-03-B-T5-no-patch.md.
+  expect(result.texts, 'A&B (literal ampersand) must be present').toContain('A&B');
+  expect(result.texts, 'quote"tag (literal double-quote) must be present').toContain('quote"tag');
+
+  // Non-zero canvas pixel count proves TagCanvas actually rendered something.
+  expect(result.opaque,
+    `canvas must render some opaque pixels; got: ${result.opaque}`
+  ).toBeGreaterThan(100);
+});
