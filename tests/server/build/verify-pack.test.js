@@ -55,7 +55,7 @@ test('verify-pack: ALLOWED_EXACT exactly equals the spec set (5 files)', () => {
 });
 
 test('verify-pack: ALLOWED_PREFIXES exactly equals the spec set (3 prefixes)', () => {
-  assert.deepEqual([...ALLOWED_PREFIXES], ['lib/', 'bin/', 'skills/']);
+  assert.deepEqual([...ALLOWED_PREFIXES], ['lib/', 'bin/', 'skills/hexo-tag-cloud/']);
 });
 
 test('verify-pack: REQUIRED_PATHS contains every spec-mandated file', () => {
@@ -91,6 +91,20 @@ test('verify-pack: ALLOWED_* tuples are immutable (Object.freeze)', () => {
   assert.ok(Object.isFrozen(ALLOWED_EXACT));
   assert.ok(Object.isFrozen(ALLOWED_PREFIXES));
   assert.ok(Object.isFrozen(REQUIRED_PATHS));
+});
+
+test('verify-pack: stray sibling skill under skills/ but outside skills/hexo-tag-cloud/ is FORBIDDEN', () => {
+  // AC #5 narrows the prefix to skills/hexo-tag-cloud/ specifically,
+  // so a future stray skill bundle (e.g. skills/other-thing/foo.md)
+  // must NOT silently ship.
+  const stray = 'skills/other-thing/SKILL.md';
+  const report = classifyPaths([...REQUIRED_PATHS, stray], {
+    allowedExact: ALLOWED_EXACT,
+    allowedPrefixes: ALLOWED_PREFIXES,
+    requiredPaths: REQUIRED_PATHS,
+  });
+  assert.deepEqual(report.forbidden, [stray]);
+  assert.deepEqual(report.missing, []);
 });
 
 // ---------- parseNpmPackOutput -----------------------------------------

@@ -28,7 +28,7 @@ const ALLOWED_EXACT = Object.freeze([
   'README.ZH.md',
 ]);
 
-const ALLOWED_PREFIXES = Object.freeze(['lib/', 'bin/', 'skills/']);
+const ALLOWED_PREFIXES = Object.freeze(['lib/', 'bin/', 'skills/hexo-tag-cloud/']);
 
 const REQUIRED_PATHS = Object.freeze([
   'index.js',
