@@ -1,0 +1,27 @@
+<aside id="sidebar">
+  <% if (site.tags.length) { %>
+    <div class="widget tagcloud">
+      <h3>Tag cloud</h3>
+      <!-- hexo-tag-cloud BEGIN -->
+      <script type="text/javascript" charset="utf-8" src="<%- url_for('/js/tagcloud.js') %>"></script>
+      <script type="text/javascript" charset="utf-8" src="<%- url_for('/js/tagcanvas.js') %>"></script>
+      <div id="myCanvasContainer" class="widget tagcloud">
+        <canvas width="250" height="250" id="resCanvas" style="margin: 0 auto; width: 100%;">
+          <%- tagcloud() %>
+        </canvas>
+      </div>
+      <!-- hexo-tag-cloud END -->
+    </div>
+  <% } %>
+
+  <% if (site.posts.length) { %>
+    <div class="widget recent-posts">
+      <h3>Recent posts</h3>
+      <ul>
+        <% site.posts.sort('date', -1).limit(5).each(function(post) { %>
+          <li><a href="<%- url_for(post.path) %>"><%= post.title %></a></li>
+        <% }); %>
+      </ul>
+    </div>
+  <% } %>
+</aside>
