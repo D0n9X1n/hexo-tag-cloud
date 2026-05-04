@@ -13,6 +13,63 @@ Yet, just another tag cloud plugin for hexo.
 
 And you can see online live demo by clicking [here](https://mhexo.github.io/archives/)
 
+## AI-assisted install
+
+The fastest way to add the tag cloud to any Hexo theme — works against
+landscape, next, butterfly, icarus, fluid, or any custom theme via the
+generic fallback.
+
+### One-shot CLI (any shell)
+
+From your Hexo site root:
+
+```bash
+# Dry-run: prints the diff that WOULD be written; does NOT touch any file.
+npx hexo-tag-cloud install
+
+# Apply: writes the managed `<!-- hexo-tag-cloud:begin/end -->` block
+# into your active theme's sidebar/widget partial.
+npx hexo-tag-cloud install --apply
+
+# Re-running is a no-op when the block is unchanged. If you've edited
+# the managed block by hand, the CLI exits 2 and prints a diff; pass
+# --apply --force to overwrite your edits with the latest defaults.
+```
+
+Useful flags:
+
+| flag | default | purpose |
+|---|---|---|
+| `--theme <name>` | autodetect from `_config.yml` | one of: landscape, next, butterfly, icarus, fluid, generic |
+| `--theme-dir <path>` | `<cwd>/themes/<theme>` | for npm-installed themes (`hexo-theme-<name>`) |
+| `--canvas-width <px>` | `500` | canvas width |
+| `--canvas-height <px>` | `400` | canvas height |
+| `--canvas-style <css>` | `margin: 0 auto;` | inline style |
+
+Exit codes: `0` success/dry-run; `1` theme detection failure;
+`2` modified-managed-block conflict (`--force` overrides);
+`3` legacy hand-installed snippet detected (remove it first);
+`4` write conflict.
+
+### Claude skill (for AI agents)
+
+If you use [Claude Code](https://docs.anthropic.com/en/docs/claude-code) or
+any agent runtime that scans `~/.claude/skills/`, install the bundled
+skill so your agent knows how to wire the tag cloud into a Hexo site
+correctly (always dry-runs first; only applies after explicit user
+approval):
+
+```bash
+npx hexo-tag-cloud install-skill           # → ~/.claude/skills/hexo-tag-cloud/
+npx hexo-tag-cloud install-skill --dry-run # preview, no writes
+npx hexo-tag-cloud install-skill --target ~/.config/agent/skills/
+```
+
+Restart your AI agent after installing so it picks up the new skill.
+
+If you prefer the manual walkthrough, the per-engine instructions
+below still work — the CLI just automates them.
+
 ## How to Use
 
 #### Install

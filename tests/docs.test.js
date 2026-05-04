@@ -71,3 +71,46 @@ test('package.json declares engines.node>=18 and peerDependencies.hexo>=5', () =
   assert.equal(pkg.peerDependencies.hexo, '>=5',
     'package.json#peerDependencies.hexo must be ">=5"');
 });
+
+// --- C/T9: AI-assisted install section in both READMEs --------------
+
+test('README.md exposes the "AI-assisted install" section ABOVE "How to Use"', () => {
+  const body = read('README.md');
+  assert.match(body, /^##\s+AI-assisted\s+install\s*$/im,
+    'README.md must contain a "## AI-assisted install" heading');
+  // Order check: AI-assisted install must come BEFORE How to Use
+  const aiIdx = body.search(/^##\s+AI-assisted\s+install\s*$/im);
+  const howIdx = body.search(/^##\s+How\s+to\s+Use\s*$/im);
+  assert.ok(aiIdx >= 0 && howIdx >= 0 && aiIdx < howIdx,
+    '"## AI-assisted install" must appear before "## How to Use" ' +
+    '(positions: ai=' + aiIdx + ', how=' + howIdx + ')');
+});
+
+test('README.md documents the canonical CLI invocations', () => {
+  const body = read('README.md');
+  assert.ok(body.includes('npx hexo-tag-cloud install'),
+    'README.md must show `npx hexo-tag-cloud install` invocation');
+  assert.ok(body.includes('install-skill'),
+    'README.md must mention the install-skill subcommand');
+  assert.ok(body.includes('--apply'),
+    'README.md must document the --apply flag');
+});
+
+test('README.ZH.md exposes the AI 辅助安装 section ABOVE 如何使用', () => {
+  const body = read('README.ZH.md');
+  assert.match(body, /^##\s+AI\s*辅助安装\s*$/im,
+    'README.ZH.md must contain a "## AI 辅助安装" heading');
+  const aiIdx = body.search(/^##\s+AI\s*辅助安装\s*$/im);
+  const howIdx = body.search(/^##\s+如何使用\s*$/im);
+  assert.ok(aiIdx >= 0 && howIdx >= 0 && aiIdx < howIdx,
+    '"## AI 辅助安装" must appear before "## 如何使用" ' +
+    '(positions: ai=' + aiIdx + ', how=' + howIdx + ')');
+});
+
+test('README.ZH.md documents the canonical CLI invocations', () => {
+  const body = read('README.ZH.md');
+  assert.ok(body.includes('npx hexo-tag-cloud install'),
+    'README.ZH.md must show `npx hexo-tag-cloud install` invocation');
+  assert.ok(body.includes('install-skill'),
+    'README.ZH.md must mention install-skill');
+});

@@ -13,6 +13,58 @@ Hexo 标签云插件
 
 这里是[效果预览站点](https://mhexo.github.io/archives/)
 
+## AI 辅助安装
+
+把 tag cloud 加到任何 Hexo 主题（landscape、next、butterfly、icarus、
+fluid，或通过 generic 兜底加到自定义主题）的最快方式。
+
+### 一键安装 CLI（任何 shell）
+
+在 Hexo 站点根目录：
+
+```bash
+# 预演：打印将要写入的 diff，不修改任何文件。
+npx hexo-tag-cloud install
+
+# 正式应用：把带 <!-- hexo-tag-cloud:begin/end --> 标记的代码块写入
+# 当前主题的侧边栏 / widget 模板。
+npx hexo-tag-cloud install --apply
+
+# 重复运行是幂等的。如果你手动改过托管块，CLI 退出码 2 并打印 diff；
+# 用 --apply --force 可强制覆盖你的改动并恢复默认。
+```
+
+可用参数：
+
+| 参数 | 默认 | 用途 |
+|---|---|---|
+| `--theme <name>` | 从 `_config.yml` 自动检测 | landscape / next / butterfly / icarus / fluid / generic |
+| `--theme-dir <path>` | `<cwd>/themes/<theme>` | 用于以 npm 包方式安装的主题 (`hexo-theme-<name>`) |
+| `--canvas-width <px>` | `500` | 画布宽度 |
+| `--canvas-height <px>` | `400` | 画布高度 |
+| `--canvas-style <css>` | `margin: 0 auto;` | 内联样式 |
+
+退出码：`0` 成功 / 预演；`1` 主题检测失败；`2` 托管块被修改冲突
+（`--force` 可覆盖）；`3` 发现遗留手工安装片段（请先手动清除）；
+`4` 写入冲突。
+
+### Claude skill（给 AI 代理）
+
+如果你使用 [Claude Code](https://docs.anthropic.com/en/docs/claude-code)
+或任何会扫描 `~/.claude/skills/` 的代理运行时，可以安装内置 skill。
+代理在调用前会先做 dry-run 并向用户确认，再执行 `--apply`：
+
+```bash
+npx hexo-tag-cloud install-skill           # → ~/.claude/skills/hexo-tag-cloud/
+npx hexo-tag-cloud install-skill --dry-run # 预演，不写入
+npx hexo-tag-cloud install-skill --target ~/.config/agent/skills/
+```
+
+安装完成后请重启你的 AI 代理以加载新 skill。
+
+如果你偏好手工操作，下方按引擎分类的说明仍然有效 — CLI 只是把它
+们自动化了。
+
 ## 如何使用
 #### 安装
 + 进入到 hexo 的根目录，然后在 `package.json` 中添加依赖: `"hexo-tag-cloud": "2.1.*"`
