@@ -1,0 +1,3 @@
+# Custom fixture theme for hexo-tag-cloud E2E tests.
+# Intentionally minimal — stock landscape doesn't load the plugin's
+# script tags, so we ship a tiny purpose-built theme instead.
