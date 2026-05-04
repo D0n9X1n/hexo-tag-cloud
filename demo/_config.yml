@@ -52,14 +52,13 @@ pagination_dir: page
 
 theme: landscape
 
-# hexo-tag-cloud configuration. Defaults are sensible; keys here override
-# them per-deploy. See README.md and wiki/Customization.md for the full
-# option matrix.
+# hexo-tag-cloud configuration. The six supported keys (case-sensitive)
+# are: textFont, textColor, textHeight, outlineColor, maxSpeed,
+# pauseOnSelected. See wiki/Customization.md for the full reference.
 tag_cloud:
-  textFont: "Helvetica, 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif"
-  textColour: '#0a8eff'
-  textHeight: 26
-  outlineColour: '#e2eaf1'
-  reverse: true
-  depth: 0.8
-  maxSpeed: 0.04
+  textFont:        "Helvetica, 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif"
+  textColor:       '#0a8eff'
+  textHeight:      26
+  outlineColor:    '#e2eaf1'
+  maxSpeed:        0.04
+  pauseOnSelected: true
