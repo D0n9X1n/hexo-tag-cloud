@@ -3,6 +3,7 @@ lib/tagcanvas.js
 coverage/
 tests/fixtures/hexo-site/node_modules/
 tests/fixtures/hexo-site/public/
+tests/server/__snapshots__/
 tests/e2e/playwright-report/
 tests/e2e/test-results/
 feature-crew/
