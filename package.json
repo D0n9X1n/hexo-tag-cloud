@@ -1,6 +1,6 @@
 {
   "name": "hexo-tag-cloud",
-  "version": "2.1.2",
+  "version": "3.0.0",
   "description": "Yet, just another tag cloud plugin for hexo.",
   "homepage": "https://github.com/D0n9X1n/hexo-tag-cloud#readme",
   "keywords": [
@@ -61,6 +61,7 @@
     "test:e2e": "cd tests/fixtures/hexo-site && (test -d node_modules || npm install --no-audit --no-fund) && cd ../../.. && playwright install --with-deps chromium && playwright test --config tests/e2e/playwright.config.js",
     "test:e2e:installer": "playwright install --with-deps chromium && playwright test --config tests/e2e/playwright.config.js tests/e2e/installer.spec.js",
     "verify-pack": "node build/verify-pack.js",
+    "prepublishOnly": "npm run verify-pack",
     "test": "npm run lint && npm run test:server && npm run test:e2e"
   }
 }

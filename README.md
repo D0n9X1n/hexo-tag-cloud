@@ -1,17 +1,21 @@
 # hexo-tag-cloud
 
-![GitHub release (latest SemVer including pre-releases)](https://img.shields.io/github/v/release/D0n9x1n/hexo-tag-cloud?include_prereleases)
-[![Build Status](https://scrutinizer-ci.com/g/MikeCoder/hexo-tag-cloud/badges/build.png?b=master)](https://scrutinizer-ci.com/g/MikeCoder/hexo-tag-cloud/build-status/master)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/MikeCoder/hexo-tag-cloud/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/MikeCoder/hexo-tag-cloud/?branch=master)
+[![Tests](https://github.com/D0n9X1n/hexo-tag-cloud/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/D0n9X1n/hexo-tag-cloud/actions/workflows/test.yml)
+[![npm version](https://img.shields.io/npm/v/hexo-tag-cloud.svg)](https://www.npmjs.com/package/hexo-tag-cloud)
+[![npm downloads](https://img.shields.io/npm/dm/hexo-tag-cloud.svg)](https://www.npmjs.com/package/hexo-tag-cloud)
+[![License: MIT](https://img.shields.io/npm/l/hexo-tag-cloud.svg)](./LICENSE)
 
-[中文说明版本](https://github.com/MikeCoder/hexo-tag-cloud/blob/master/README.ZH.md)
+[中文说明版本](./README.ZH.md)
 
 Yet, just another tag cloud plugin for hexo.
 
 ## How it looks like
 ![TagCloud](./img/example.png)
 
-And you can see online live demo by clicking [here](https://mhexo.github.io/archives/)
+## Demo
+
+Live demo: <https://d0n9x1n.github.io/hexo-tag-cloud/> — built from
+[`demo/`](./demo/), auto-deployed by `.github/workflows/deploy-demo.yml`.
 
 ## AI-assisted install
 
@@ -189,6 +193,20 @@ Stock TagCanvas v2.9 reads tag text as a literal DOM string, and stock hexo's `t
 
 ### Other issues
 Submit an issue with your `npm list`, `_config.yml`, and the contents of `public/js/tagcloud.js` after `hexo generate`.
+
+## Wiki
+
+For long-form docs see the in-repo [`wiki/`](./wiki/Home.md):
+[Installation](./wiki/Installation.md) ·
+[Customization](./wiki/Customization.md) ·
+[Troubleshooting](./wiki/Troubleshooting.md) ·
+[AI-Skill-Usage](./wiki/AI-Skill-Usage.md) ·
+[Contributing](./wiki/Contributing.md).
+
+## Changelog
+
+See [`CHANGELOG.md`](./CHANGELOG.md). Migrating from 2.x? Read
+[`docs/migration-2.x-to-3.x.md`](./docs/migration-2.x-to-3.x.md).
 
 # Thanks
 + **[TagCanvas](http://www.goat1000.com/tagcanvas.php)**

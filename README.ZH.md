@@ -1,17 +1,22 @@
 # Hexo Tag Cloud
 
-![GitHub release (latest SemVer including pre-releases)](https://img.shields.io/github/v/release/D0n9x1n/hexo-tag-cloud?include_prereleases)
-[![Build Status](https://scrutinizer-ci.com/g/MikeCoder/hexo-tag-cloud/badges/build.png?b=master)](https://scrutinizer-ci.com/g/MikeCoder/hexo-tag-cloud/build-status/master)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/MikeCoder/hexo-tag-cloud/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/MikeCoder/hexo-tag-cloud/?branch=master)
+[![Tests](https://github.com/D0n9X1n/hexo-tag-cloud/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/D0n9X1n/hexo-tag-cloud/actions/workflows/test.yml)
+[![npm version](https://img.shields.io/npm/v/hexo-tag-cloud.svg)](https://www.npmjs.com/package/hexo-tag-cloud)
+[![npm downloads](https://img.shields.io/npm/dm/hexo-tag-cloud.svg)](https://www.npmjs.com/package/hexo-tag-cloud)
+[![License: MIT](https://img.shields.io/npm/l/hexo-tag-cloud.svg)](./LICENSE)
 
-[English ReadMe](https://github.com/MikeCoder/hexo-tag-cloud/blob/master/README.md)
+[English ReadMe](./README.md)
 
 Hexo 标签云插件
 
 ## 效果图
 ![TagCloud](./img/example.png)
 
-这里是[效果预览站点](https://mhexo.github.io/archives/)
+## 在线 Demo
+
+在线演示：<https://d0n9x1n.github.io/hexo-tag-cloud/> —— 由
+[`demo/`](./demo/) 自动构建，部署工作流见
+`.github/workflows/deploy-demo.yml`。
 
 ## AI 辅助安装
 
@@ -183,3 +188,17 @@ v3.0.0 起，中文 / 日文 / 韩文 / 西里尔字母及其他非拉丁字符�
 
 ## 致谢
 + **[TagCanvas](http://www.goat1000.com/tagcanvas.php)**
+
+## Wiki / 长文档
+
+完整文档见仓内 [`wiki/`](./wiki/Home.md):
+[Installation](./wiki/Installation.md) ·
+[Customization](./wiki/Customization.md) ·
+[Troubleshooting](./wiki/Troubleshooting.md) ·
+[AI-Skill-Usage](./wiki/AI-Skill-Usage.md) ·
+[Contributing](./wiki/Contributing.md).
+
+## 更新日志
+
+参见 [`CHANGELOG.md`](./CHANGELOG.md)。从 2.x 升级请阅读
+[`docs/migration-2.x-to-3.x.md`](./docs/migration-2.x-to-3.x.md)。
