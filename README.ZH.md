@@ -16,7 +16,7 @@
 [![npm provenance](https://img.shields.io/badge/npm-provenance-blue)](https://www.npmjs.com/package/hexo-tag-cloud#provenance)
 [![Node](https://img.shields.io/node/v/hexo-tag-cloud.svg)](./package.json)
 [![Hexo](https://img.shields.io/badge/hexo-%E2%89%A55-0e83cd)](https://hexo.io/)
-[![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-d97757)](#ai-辅助安装)
+[![Claude Code skill](https://img.shields.io/badge/Claude%20Code-skill-d97757)](./skills/hexo-tag-cloud/SKILL.md)
 [![License: MIT](https://img.shields.io/npm/l/hexo-tag-cloud.svg)](./LICENSE)
 
 [English](./README.md) · 中文
@@ -31,7 +31,7 @@
   EJS / Nunjucks / Swig / Pug / Jade 模板；**注入模式**完全不改模板，连 Icarus 这类 JSX 主题也能用。
 - **安全的安装器**：默认只预览 diff；只写入一段带标记的受管代码块；重复执行幂等；
   不会覆盖你手动修改过的内容。
-- **Claude Code 集成**：内置 skill 与插件，Claude Code 会先展示 diff，经你确认后再写入。
+- **Claude Code skill**：[`skills/hexo-tag-cloud/SKILL.md`](./skills/hexo-tag-cloud/SKILL.md)，Claude Code 会先展示 diff，经你确认后再写入。
 - **非 ASCII 标签**：自动追加 CJK 字体回退，链接经过百分号编码，中文、日文、韩文、西里尔文标签都能正常显示和跳转。
 - **支持子路径部署**：所有 URL 遵循 Hexo 的 `root` 配置，`/blog/` 这类部署可直接使用。
 
@@ -59,14 +59,9 @@ tag_cloud:
 
 ## AI 辅助安装
 
-Claude Code 可以替你完成安装和接线。把本仓库作为插件添加：
-
-```
-/plugin marketplace add D0n9X1n/hexo-tag-cloud
-/plugin install hexo-tag-cloud@hexo-tag-cloud-marketplace
-```
-
-也可以从 npm 包把 skill 复制到 `~/.claude/skills/`：
+Claude Code 可以替你完成安装和接线。skill 只有一个文件：
+[`skills/hexo-tag-cloud/SKILL.md`](./skills/hexo-tag-cloud/SKILL.md)。把它复制到
+`~/.claude/skills/hexo-tag-cloud/`，或者用 CLI 安装：
 
 ```bash
 npx hexo-tag-cloud install-skill            # 加 --force 可更新旧版本

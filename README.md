@@ -16,7 +16,7 @@
 [![npm provenance](https://img.shields.io/badge/npm-provenance-blue)](https://www.npmjs.com/package/hexo-tag-cloud#provenance)
 [![Node](https://img.shields.io/node/v/hexo-tag-cloud.svg)](./package.json)
 [![Hexo](https://img.shields.io/badge/hexo-%E2%89%A55-0e83cd)](https://hexo.io/)
-[![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-d97757)](#ai-assisted-install)
+[![Claude Code skill](https://img.shields.io/badge/Claude%20Code-skill-d97757)](./skills/hexo-tag-cloud/SKILL.md)
 [![License: MIT](https://img.shields.io/npm/l/hexo-tag-cloud.svg)](./LICENSE)
 
 English · [中文](./README.ZH.md)
@@ -32,8 +32,8 @@ English · [中文](./README.ZH.md)
   needs no template edits at all, which makes it work with JSX themes such as Icarus.
 - **Safe installer.** It previews a diff by default and writes only one marker-wrapped block.
   Re-runs are idempotent, and it never overwrites your own edits.
-- **Claude Code integration.** A bundled skill and plugin let Claude Code add the cloud to
-  your blog. Claude shows you the diff and waits for your approval before it applies anything.
+- **Claude Code skill.** [`skills/hexo-tag-cloud/SKILL.md`](./skills/hexo-tag-cloud/SKILL.md) lets
+  Claude Code add the cloud to your blog. Claude shows you the diff and waits for your approval before it applies anything.
 - **Non-ASCII tags.** A CJK fallback font stack and percent-encoded links handle Chinese,
   Japanese, Korean and Cyrillic tags.
 - **Sub-path friendly.** Every URL respects Hexo's `root`, so `/blog/`-style deployments work.
@@ -63,14 +63,9 @@ tag_cloud:
 
 ## AI-assisted install
 
-Claude Code can install and wire up the tag cloud for you. Add this repository as a plugin:
-
-```
-/plugin marketplace add D0n9X1n/hexo-tag-cloud
-/plugin install hexo-tag-cloud@hexo-tag-cloud-marketplace
-```
-
-You can also copy the skill from the npm package into `~/.claude/skills/`:
+Claude Code can install and wire up the tag cloud for you. The skill is a single file,
+[`skills/hexo-tag-cloud/SKILL.md`](./skills/hexo-tag-cloud/SKILL.md). Copy it into
+`~/.claude/skills/hexo-tag-cloud/`, or let the CLI do it:
 
 ```bash
 npx hexo-tag-cloud install-skill            # use --force to refresh an older copy

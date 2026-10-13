@@ -1,7 +1,7 @@
 # hexo-tag-cloud
 
 A Hexo plugin that renders an animated 3D tag cloud with TagCanvas. It also ships a Claude Code
-skill and plugin that add the cloud to any Hexo theme.
+skill that adds the cloud to any Hexo theme.
 
 ## Layout
 
@@ -12,8 +12,9 @@ skill and plugin that add the cloud to any Hexo theme.
 - `lib/installer/`: the `npx hexo-tag-cloud` CLI (`install`, `inspect`, `install-skill`). Recipes
   live in `theme-heuristics.js`, snippets in `partial-emitter.js`, and splice decisions in
   `apply-edit.js`.
-- `skills/hexo-tag-cloud/SKILL.md`: the Claude Code skill. `.claude-plugin/` makes this repo
-  installable as a Claude Code plugin.
+- `skills/hexo-tag-cloud/SKILL.md`: the Claude Code skill, a single file. Users copy it into
+  `~/.claude/skills/` (`npx hexo-tag-cloud install-skill`). This repo ships no Claude Code
+  plugin or settings files.
 - `demo/`: the live demo site (GitHub Pages). `tests/fixtures/`: Hexo sites used by tests.
 - `wiki/`: the canonical wiki source, mirrored to the GitHub wiki on every push to `master`.
   Never edit the GitHub wiki directly.

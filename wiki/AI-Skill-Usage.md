@@ -7,20 +7,19 @@ change after you approve it.
 
 ## Install
 
-**As a Claude Code plugin** (the plugin tracks this repository):
-
-```
-/plugin marketplace add D0n9X1n/hexo-tag-cloud
-/plugin install hexo-tag-cloud@hexo-tag-cloud-marketplace
-```
-
-**From the npm package** (copies the skill into `~/.claude/skills/hexo-tag-cloud/`):
+The skill is a single file:
+[`skills/hexo-tag-cloud/SKILL.md`](https://github.com/D0n9X1n/hexo-tag-cloud/blob/master/skills/hexo-tag-cloud/SKILL.md).
+Copy it to `~/.claude/skills/hexo-tag-cloud/SKILL.md`, or have the CLI copy it from
+the npm package:
 
 ```bash
 npx hexo-tag-cloud install-skill           # first install
 npx hexo-tag-cloud install-skill --force   # refresh an older copy
 npx hexo-tag-cloud install-skill --dry-run # preview
 ```
+
+To share it with everyone working on one blog, put it in that repository's
+`.claude/skills/hexo-tag-cloud/SKILL.md` instead.
 
 Start a new Claude Code session, or run `/skills`, to load it.
 

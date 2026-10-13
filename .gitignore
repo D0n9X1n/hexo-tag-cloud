@@ -21,3 +21,6 @@ tests/fixtures/*/package-lock.json
 
 # Python bytecode from scripts/
 __pycache__/
+
+# Local Claude Code settings
+.claude/
