@@ -1,5 +1,7 @@
 # AI-Skill Usage (Claude Code)
 
+**English** · [简体中文](AI-Skill-Usage-zh-CN)
+
 `hexo-tag-cloud` ships a [Claude Code skill](https://code.claude.com/docs/en/skills)
 that can add the tag cloud to **any** Hexo theme. The skill runs the same CLI you
 would run yourself. It always shows you a dry run first and only applies the
@@ -64,9 +66,9 @@ The CLI only creates or modifies content between these markers:
 
 Everything outside them is preserved byte-for-byte. If you edit the block by hand,
 the next run exits `2` and shows a diff instead of overwriting your edits. See
-[Troubleshooting](Troubleshooting.md#installer-exit-codes).
+[Troubleshooting](Troubleshooting#installer-exit-codes).
 
 ## Without the skill
 
 The skill is a thin layer over the CLI, so every step above also works by hand. See
-[Installation](Installation.md).
+[Installation](Installation).
