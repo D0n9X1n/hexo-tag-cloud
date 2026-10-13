@@ -1,6 +1,6 @@
 {
   "name": "hexo-tag-cloud",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "Add, repair, or upgrade the hexo-tag-cloud animated 3D tag cloud in any Hexo blog theme.",
   "author": {
     "name": "D0n9X1n"
