@@ -78,11 +78,11 @@ correct partial heuristic (landscape, NexT, Butterfly, Icarus, Fluid, or a
 generic fallback), and inserts a managed block:
 
 ```ejs
-<!-- hexo-tag-cloud BEGIN -->
+<!-- hexo-tag-cloud:begin -->
 <canvas id="resCanvas" width="250" height="250">...</canvas>
 <script src="/js/tagcloud.js"></script>
 <script src="/js/tagcanvas.js"></script>
-<!-- hexo-tag-cloud END -->
+<!-- hexo-tag-cloud:end -->
 ```
 
 Future installer runs are idempotent — re-running `--apply` on an
@@ -104,9 +104,9 @@ entirely; the plugin works the same way it did in 2.x.
 The installer always wraps its output in:
 
 ```ejs
-<!-- hexo-tag-cloud BEGIN -->
+<!-- hexo-tag-cloud:begin -->
 ...
-<!-- hexo-tag-cloud END -->
+<!-- hexo-tag-cloud:end -->
 ```
 
 Anything outside these markers is left untouched. Anything inside is
@@ -116,20 +116,20 @@ unless `--force` is passed.
 
 This contract is what enables the AI-skill workflow: the bundled Claude
 skill at `skills/hexo-tag-cloud/SKILL.md` always invokes the CLI in
-`--dry-run` mode first and shows the unified diff to the user; only after
+dry-run mode (no `--apply`) first and shows the unified diff to the user; only after
 explicit approval does it run `--apply`.
 
-## AI-assisted install
+## Claude Code skill
 
-The bundled skill makes installation idempotent across any agent that
-understands Anthropic's skill format. To install the skill alongside the
-plugin so a Claude-powered editor or CLI can discover it, run:
+The package bundles a Claude Code skill that runs the installer for you,
+dry-run first and only applying after you approve. Install it with:
 
 ```bash
-npx hexo-tag-cloud install-skill --apply
+npx hexo-tag-cloud install-skill
 ```
 
-By default this copies `skills/hexo-tag-cloud/` to `./.claude/skills/`. See
+This copies `skills/hexo-tag-cloud/` to `~/.claude/skills/hexo-tag-cloud/`
+(`--force` refreshes an older copy). See
 [wiki/AI-Skill-Usage.md](../wiki/AI-Skill-Usage.md) for the full workflow.
 
 ## What did NOT change
@@ -139,7 +139,7 @@ By default this copies `skills/hexo-tag-cloud/` to `./.claude/skills/`. See
 - The hexo helper API (`tagcloud()` is unchanged).
 - The injected JavaScript runtime (`/js/tagcloud.js` and `/js/tagcanvas.js`
   are byte-identical to 2.1.2).
-- The list of supported hexo versions (still `>= 4`).
+- Your `tag_cloud:` options. Note the platform floor did change: Hexo `>= 5` and Node.js `>= 18`.
 
 ## What changed but should not affect you
 

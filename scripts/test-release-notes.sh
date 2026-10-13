@@ -74,6 +74,7 @@ export GITHUB_REPOSITORY=owner/repo
   grep -q "## Resolved issues" notes.md
   grep -q "No linked issues resolved" notes.md
   ! grep -q "feat: initial release" notes.md
+  ! grep -qi "changelog" notes.md
 
   # Missing tags must not silently broaden the range to a first-release history.
   git tag -d v3.0.0 >/dev/null

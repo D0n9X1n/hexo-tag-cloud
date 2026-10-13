@@ -1,213 +1,165 @@
+<div align="center">
+
 # hexo-tag-cloud
 
+**An animated 3D tag cloud for [Hexo](https://hexo.io/), powered by [TagCanvas](https://www.goat1000.com/tagcanvas.php).**
+
+### [▶ Live demo](https://d0n9x1n.github.io/hexo-tag-cloud/)
+
 [![Tests](https://github.com/D0n9X1n/hexo-tag-cloud/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/D0n9X1n/hexo-tag-cloud/actions/workflows/test.yml)
+[![Release](https://github.com/D0n9X1n/hexo-tag-cloud/actions/workflows/release.yml/badge.svg)](https://github.com/D0n9X1n/hexo-tag-cloud/actions/workflows/release.yml)
+[![Demo](https://github.com/D0n9X1n/hexo-tag-cloud/actions/workflows/deploy-demo.yml/badge.svg?branch=master)](https://d0n9x1n.github.io/hexo-tag-cloud/)
+[![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)](./CLAUDE.md#rules)
+<br>
 [![npm version](https://img.shields.io/npm/v/hexo-tag-cloud.svg)](https://www.npmjs.com/package/hexo-tag-cloud)
 [![npm downloads](https://img.shields.io/npm/dm/hexo-tag-cloud.svg)](https://www.npmjs.com/package/hexo-tag-cloud)
+[![npm provenance](https://img.shields.io/badge/npm-provenance-blue)](https://www.npmjs.com/package/hexo-tag-cloud#provenance)
+[![Node](https://img.shields.io/node/v/hexo-tag-cloud.svg)](./package.json)
+[![Hexo](https://img.shields.io/badge/hexo-%E2%89%A55-0e83cd)](https://hexo.io/)
+[![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-d97757)](#ai-assisted-install)
 [![License: MIT](https://img.shields.io/npm/l/hexo-tag-cloud.svg)](./LICENSE)
 
-[中文说明版本](./README.ZH.md)
+English · [中文](./README.ZH.md)
 
-Yet, just another tag cloud plugin for hexo.
+![hexo-tag-cloud screenshot](./img/example.png)
 
-## How it looks like
-![TagCloud](./img/example.png)
+</div>
 
-## Demo
+## Features
 
-Live demo: <https://d0n9x1n.github.io/hexo-tag-cloud/> — built from
-[`demo/`](./demo/), auto-deployed by `.github/workflows/deploy-demo.yml`.
+- **Works with any theme.** Built-in recipes cover landscape, NexT, Butterfly and Fluid.
+  `--target` handles any EJS, Nunjucks, Swig, Pug or Jade template, and **inject mode**
+  needs no template edits at all, which makes it work with JSX themes such as Icarus.
+- **Safe installer.** It previews a diff by default and writes only one marker-wrapped block.
+  Re-runs are idempotent, and it never overwrites your own edits.
+- **Claude Code integration.** A bundled skill and plugin let Claude Code add the cloud to
+  your blog. Claude shows you the diff and waits for your approval before it applies anything.
+- **Non-ASCII tags.** A CJK fallback font stack and percent-encoded links handle Chinese,
+  Japanese, Korean and Cyrillic tags.
+- **Sub-path friendly.** Every URL respects Hexo's `root`, so `/blog/`-style deployments work.
+
+## Quick start
+
+```bash
+# 1. Install the plugin. It generates js/tagcanvas.js and js/tagcloud.js on every build.
+npm install hexo-tag-cloud --save
+
+# 2. Add the cloud to your theme. The first command previews the change; --apply writes it.
+npx hexo-tag-cloud install
+npx hexo-tag-cloud install --apply
+
+# 3. Build
+npx hexo clean && npx hexo generate
+```
+
+If your theme has no built-in recipe, or you'd rather not edit templates, turn on inject mode
+instead of step 2:
+
+```yaml
+# _config.yml
+tag_cloud:
+  inject: true
+```
 
 ## AI-assisted install
 
-The fastest way to add the tag cloud to any Hexo theme — works against
-landscape, next, butterfly, icarus, fluid, or any custom theme via the
-generic fallback.
+Claude Code can install and wire up the tag cloud for you. Add this repository as a plugin:
 
-### One-shot CLI (any shell)
-
-From your Hexo site root:
-
-```bash
-# Dry-run: prints the diff that WOULD be written; does NOT touch any file.
-npx hexo-tag-cloud install
-
-# Apply: writes the managed `<!-- hexo-tag-cloud:begin/end -->` block
-# into your active theme's sidebar/widget partial.
-npx hexo-tag-cloud install --apply
-
-# Re-running is a no-op when the block is unchanged. If you've edited
-# the managed block by hand, the CLI exits 2 and prints a diff; pass
-# --apply --force to overwrite your edits with the latest defaults.
+```
+/plugin marketplace add D0n9X1n/hexo-tag-cloud
+/plugin install hexo-tag-cloud@hexo-tag-cloud-marketplace
 ```
 
-Useful flags:
-
-| flag | default | purpose |
-|---|---|---|
-| `--theme <name>` | autodetect from `_config.yml` | one of: landscape, next, butterfly, icarus, fluid, generic |
-| `--theme-dir <path>` | `<cwd>/themes/<theme>` | for npm-installed themes (`hexo-theme-<name>`) |
-| `--canvas-width <px>` | `500` | canvas width |
-| `--canvas-height <px>` | `400` | canvas height |
-| `--canvas-style <css>` | `margin: 0 auto;` | inline style |
-
-Exit codes: `0` success/dry-run; `1` theme detection failure;
-`2` modified-managed-block conflict (`--force` overrides);
-`3` legacy hand-installed snippet detected (remove it first);
-`4` write conflict.
-
-### Claude skill (for AI agents)
-
-If you use [Claude Code](https://docs.anthropic.com/en/docs/claude-code) or
-any agent runtime that scans `~/.claude/skills/`, install the bundled
-skill so your agent knows how to wire the tag cloud into a Hexo site
-correctly (always dry-runs first; only applies after explicit user
-approval):
+You can also copy the skill from the npm package into `~/.claude/skills/`:
 
 ```bash
-npx hexo-tag-cloud install-skill           # → ~/.claude/skills/hexo-tag-cloud/
-npx hexo-tag-cloud install-skill --dry-run # preview, no writes
-npx hexo-tag-cloud install-skill --target ~/.config/agent/skills/
+npx hexo-tag-cloud install-skill            # use --force to refresh an older copy
 ```
 
-Restart your AI agent after installing so it picks up the new skill.
-
-If you prefer the manual walkthrough, the per-engine instructions
-below still work — the CLI just automates them.
+Then ask Claude Code to *"add a tag cloud to my Hexo blog"*. The skill checks that the plugin
+is installed and runs `npx hexo-tag-cloud inspect` to find your theme and its templates. It
+picks a built-in recipe, a `--target` template, or inject mode, shows you the dry-run diff,
+and applies it only after you approve. See [AI-Skill-Usage](./wiki/AI-Skill-Usage.md).
 
 ## How to Use
 
-#### Install
-+ go into your hexo system folder, and add depandence `"hexo-tag-cloud": "^3.0.0"` to `package.json`
-+ then do *npm install* command
-+ then you need to change your theme layout file and add the following content to that file depended on your render system.
+### Install paths
 
-#### For ejs Users
-+ For example, in its default theme landscape.
-+ We should find `hexo/themes/landscape/layout/_widget/tagcloud.ejs` file and insert the following code.
-```
+| path | command | edits theme files | works with |
+|---|---|---|---|
+| Built-in recipe | `npx hexo-tag-cloud install` | one managed block | landscape, NexT, Butterfly, Fluid |
+| Any template | `npx hexo-tag-cloud install --target <file> --before "</aside>"` | one managed block | any `.ejs` / `.njk` / `.swig` / `.pug` / `.jade` |
+| Inject mode | `tag_cloud.inject: true` in `_config.yml` | none | every theme |
+
+Each install command is a dry run until you add `--apply`. Run `npx hexo-tag-cloud inspect`
+to see your theme's directory and its templates, ranked by how likely each one is to be a
+sidebar. The [Installation](./wiki/Installation.md) wiki page has the details.
+
+### CLI reference
+
+| flag | default | purpose |
+|---|---|---|
+| `--theme <name>` | from `_config.yml` | override theme detection |
+| `--theme-dir <path>` | `themes/<name>`, then `node_modules/hexo-theme-<name>` | theme directory |
+| `--target <file>` | the theme's recipe | any template, relative to the theme directory |
+| `--before <text>` | append | insert before the last line containing `<text>` |
+| `--apply` | off (dry run) | write the change |
+| `--force` | off | replace a managed block you edited by hand |
+| `--canvas-width` / `--canvas-height` / `--canvas-style` | `250` / `250` / `width: 100%;` | canvas size |
+
+Exit codes: `0` success or dry run · `1` detection failed, no recipe, or unsupported engine ·
+`2` managed block was edited by hand · `3` an existing hand-written snippet was found ·
+`4` target file is missing or unwritable.
+
+### Manual snippet
+
+If you write the template yourself, put Hexo's `tagcloud()` **inside** the canvas and load both
+scripts through `url_for()`. The EJS version looks like this:
+
+```ejs
 <% if (site.tags.length) { %>
-  <script type="text/javascript" charset="utf-8" src="<%- url_for('/js/tagcloud.js') %>"></script>
-  <script type="text/javascript" charset="utf-8" src="<%- url_for('/js/tagcanvas.js') %>"></script>
-  <div class="widget-wrap">
-    <h3 class="widget-title"><%= __('tagcloud') %></h3>
-    <div id="myCanvasContainer" class="widget tagcloud">
-      <canvas width="250" height="250" id="resCanvas" style="width:100%">
-        <%- tagcloud() %>
-      </canvas>
-    </div>
-  </div>
+<div id="myCanvasContainer" class="widget-wrap tagcloud">
+  <canvas id="resCanvas" width="250" height="250" style="width: 100%;">
+    <%- tagcloud() %>
+  </canvas>
+</div>
+<script src="<%- url_for('/js/tagcanvas.js') %>"></script>
+<script src="<%- url_for('/js/tagcloud.js') %>"></script>
 <% } %>
 ```
 
-If you are using [icarus](https://github.com/ppoffice/hexo-theme-icarus), please see [Issue #31](https://github.com/MikeCoder/hexo-tag-cloud/issues/31).
-
-#### For swig Users
-+ Here we use theme Next as an example.
-+ You should insert the following code into `next/layout/_macro/sidebar.swig`.
-```
-{% if site.tags.length > 1 %}
-  <script type="text/javascript" charset="utf-8" src="{{ url_for('/js/tagcloud.js') }}"></script>
-  <script type="text/javascript" charset="utf-8" src="{{ url_for('/js/tagcanvas.js') }}"></script>
-  <div class="widget-wrap">
-    <h3 class="widget-title">Tag Cloud</h3>
-    <div id="myCanvasContainer" class="widget tagcloud">
-      <canvas width="250" height="250" id="resCanvas" style="width:100%">
-        {{ list_tags() }}
-      </canvas>
-    </div>
-  </div>
-{% endif %}
-```
-@See [Issue 6](https://github.com/MikeCoder/hexo-tag-cloud/issues/6)
-
-
-#### For jade Users
-+ eg. theme Apollo.
-+ You can add change the container block code to the following in `apollo/layout/archive.jade`.
-```
-...
-block container
-    include mixins/post
-    .archive
-        h2(class='archive-year')= 'Tag Cloud'
-        script(type='text/javascript', charset='utf-8', src=url_for("/js/tagcloud.js"))
-        script(type='text/javascript', charset='utf-8', src=url_for("/js/tagcanvas.js"))
-        #myCanvasContainer.widget.tagcloud(align='center')
-            canvas#resCanvas(width='500', height='500', style='width:100%')
-                !=tagcloud()
-            !=tagcloud()
-    +postList()
-...
-```
-
-#### For pug Users
-
-+ Here we use theme Butterfly as an example.
-+ Then find this file: `Butterfly/layout/includes/widget/card_tags.pug` 
-+ Modiefy the file as following code:
-
-```
-if site.tags.length
-  .card-widget.card-tags
-    .card-content
-      .item-headline
-        i.fa.fa-tags(aria-hidden="true")
-        span= _p('aside.card_tags')
-        script(type="text/javascript" charset="utf-8" src="/js/tagcloud.js")
-        script(type="text/javascript" charset="utf-8" src="/js/tagcanvas.js")
-        #myCanvasContainer.widget.tagcloud(align='center')
-          canvas#resCanvas(width='200', height='200', style='width=100%')
-            != tagcloud()
-          != tagcloud({min_font: 16, max_font: 24, amount: 50, color: true, start_color: '#999', end_color: '#99a9bf'})
-```
-
-
-#### Last step
-+ use `hexo clean && hexo g && hexo s` to see the change. hexo clean must be done before use `hexo g`.
-+ **PS: Don't use the command `hexo g -d or hexo d -g`**, @See [Issue 7](https://github.com/MikeCoder/hexo-tag-cloud/issues/7)
-
 ## Customize
-Now the hexo-tag-cloud plugin supports customization. It's simple to change the color and the font for the tag cloud.
-
-+ Add the config below to your *_config.yml* file (in your blog's root directory):
 
 ```yaml
-# hexo-tag-cloud
+# _config.yml
 tag_cloud:
-    textFont: 'Trebuchet MS, Helvetica'   # any single family is auto-extended with a CJK fallback stack (v3+)
-    textColor: '#333'
-    textHeight: 25
-    outlineColor: '#E2E1D1'
-    maxSpeed: 0.5            # range from [0.01 ~ 1]
-    pauseOnSelected: false   # true means pause the cloud tag movement when highlighting a tag
+  textFont: 'Trebuchet MS, Helvetica'  # a single family gets a CJK fallback stack appended
+  textColor: '#333'
+  textHeight: 25
+  outlineColor: '#E2E1D1'
+  maxSpeed: 0.5                         # 0.01 – 1
+  pauseOnSelected: false                # pause rotation while a tag is highlighted
+  inject: false                         # true = no template edits (see above)
+  # mount: '#sidebar'                   # inject mode: CSS selectors, first match wins
 ```
-+ then run `hexo clean && hexo g && hexo s` to enjoy your customised tag cloud.
 
-### Non-ASCII tags (CJK / Cyrillic / etc.)
-Tags written in Chinese / Japanese / Korean / Cyrillic and other non-Latin scripts render correctly out of the box from v3.0.0. The default `textFont` (and any single-family value you supply) is automatically extended with a cross-platform CJK fallback stack (PingFang SC, Hiragino Sans GB, Microsoft YaHei, Source Han Sans CN, Noto Sans CJK SC, sans-serif), so glyphs that the primary font lacks fall through to the next family rather than rendering as `□`. If you supply a multi-family value such as `'Comic Sans MS, sans-serif'` your value is honoured verbatim.
+See [Customization](./wiki/Customization.md) for every option and some ready-made recipes.
 
-## Troubleshooting
+## Documentation
 
-### `&#NN;` codes (e.g. `&#43;` instead of `+`) appear ON the canvas
-Stock TagCanvas v2.9 reads tag text as a literal DOM string, and stock hexo's `tagcloud()` helper outputs HTML entities that the browser decodes correctly. If you see literal entity codes painted on the canvas, your hexo build chain is double-escaping the `<a>` text content before TagCanvas reads it — most commonly via plugins that re-serialise generated HTML through cheerio (`hexo-asset-image`, custom HTML post-processors, etc.). Audit your hexo plugin list for anything that touches `<a>` text content; v3 ships a regression e2e test (`tests/e2e/smoke.spec.js`) that locks in the literal-text round-trip on a clean fixture as evidence of the upstream behaviour.
+- [Wiki home](./wiki/Home.md): [Installation](./wiki/Installation.md) ·
+  [Customization](./wiki/Customization.md) · [Troubleshooting](./wiki/Troubleshooting.md) ·
+  [AI-Skill-Usage](./wiki/AI-Skill-Usage.md) · [Contributing](./wiki/Contributing.md)
+- [Migrating from 2.x](./docs/migration-2.x-to-3.x.md)
+- [Releases](https://github.com/D0n9X1n/hexo-tag-cloud/releases): release notes list resolved issues and every commit
 
-### Other issues
-Submit an issue with your `npm list`, `_config.yml`, and the contents of `public/js/tagcloud.js` after `hexo generate`.
+## Support
 
-## Wiki
+Found a bug or have an idea? Open an issue at
+<https://github.com/D0n9X1n/hexo-tag-cloud/issues> and include your `npx hexo version` output,
+your theme, your `tag_cloud:` block, and the output of `npx hexo-tag-cloud inspect`.
 
-For long-form docs see the in-repo [`wiki/`](./wiki/Home.md):
-[Installation](./wiki/Installation.md) ·
-[Customization](./wiki/Customization.md) ·
-[Troubleshooting](./wiki/Troubleshooting.md) ·
-[AI-Skill-Usage](./wiki/AI-Skill-Usage.md) ·
-[Contributing](./wiki/Contributing.md).
+## License
 
-## Releases
-
-Release notes (resolved issues + every commit) are on
-[GitHub Releases](https://github.com/D0n9X1n/hexo-tag-cloud/releases). Migrating from 2.x? Read
-[`docs/migration-2.x-to-3.x.md`](./docs/migration-2.x-to-3.x.md).
-
-# Thanks
-+ **[TagCanvas](http://www.goat1000.com/tagcanvas.php)**
+[MIT](./LICENSE). The tag cloud is drawn by [TagCanvas](https://www.goat1000.com/tagcanvas.php)
+by Graham Breach.

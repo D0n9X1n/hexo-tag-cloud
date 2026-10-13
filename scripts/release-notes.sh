@@ -42,7 +42,6 @@ echo "npm install hexo-tag-cloud@${VERSION} --save"
 echo '```'
 echo
 echo "- npm: <https://www.npmjs.com/package/hexo-tag-cloud/v/${VERSION}> (published with provenance)."
-echo "- Changelog: <https://github.com/${REPO}/blob/${TAG}/CHANGELOG.md>."
 echo
 
 printf '%s\n\n' "$ISSUES"
@@ -65,5 +64,5 @@ echo
 echo "## Verification"
 echo
 echo "- The release commit is on \`master\` and its exact Tests run passed (lint, 100% coverage server tests, Playwright e2e)."
-echo "- The workflow checks that the tag, \`package.json\` version, and dated \`CHANGELOG.md\` entry agree."
+echo "- The workflow checks that the tag and the \`package.json\` version agree."
 echo "- \`build/verify-pack.js\` checks the npm tarball contents before publication."
