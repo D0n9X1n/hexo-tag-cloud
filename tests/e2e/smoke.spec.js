@@ -83,7 +83,7 @@ test('TagCanvas loads CJK / Cyrillic / HTML-special tags from the DOM (B/T7)',
   }
 
   // T5 regression — HTML-special characters render literally, not
-  // double-decoded into different glyphs. See docs/notes/2026-05-03-B-T5-no-patch.md.
+  // double-decoded into different glyphs.
   expect(result.texts, 'A&B (literal ampersand) must be present').toContain('A&B');
   expect(result.texts, 'quote"tag (literal double-quote) must be present').toContain('quote"tag');
 

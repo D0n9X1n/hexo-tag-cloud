@@ -198,7 +198,8 @@ v3.0.0 起，中文 / 日文 / 韩文 / 西里尔字母及其他非拉丁字符�
 [AI-Skill-Usage](./wiki/AI-Skill-Usage.md) ·
 [Contributing](./wiki/Contributing.md).
 
-## 更新日志
+## 版本发布
 
-参见 [`CHANGELOG.md`](./CHANGELOG.md)。从 2.x 升级请阅读
+发布说明（已解决的 issue + 全部提交）见
+[GitHub Releases](https://github.com/D0n9X1n/hexo-tag-cloud/releases)。从 2.x 升级请阅读
 [`docs/migration-2.x-to-3.x.md`](./docs/migration-2.x-to-3.x.md)。

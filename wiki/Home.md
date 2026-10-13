@@ -24,7 +24,7 @@ common pitfalls, the AI skill, and the contributor workflow.
 
 - [README (English)](../README.md) · [README (中文)](../README.ZH.md)
 - [Migration: 2.x → 3.x](../docs/migration-2.x-to-3.x.md)
-- [Changelog](../CHANGELOG.md)
+- [Releases](https://github.com/D0n9X1n/hexo-tag-cloud/releases) (release notes with resolved issues and commits)
 - [Live demo](https://d0n9x1n.github.io/hexo-tag-cloud/) (built from `demo/`)
 
 ## Mirror policy

@@ -29,7 +29,7 @@ v3.0.0 introduces no breaking runtime API. The major-version bump reflects:
    release (2.1.2, 2018) to the D0n9X1n maintainership. The bump signals
    the clean break.
 
-See [CHANGELOG.md](../CHANGELOG.md) for the full list of additions,
+See the [GitHub Releases](https://github.com/D0n9X1n/hexo-tag-cloud/releases) for the full list of additions,
 changes, and fixes.
 
 ## Upgrade steps

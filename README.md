@@ -203,9 +203,10 @@ For long-form docs see the in-repo [`wiki/`](./wiki/Home.md):
 [AI-Skill-Usage](./wiki/AI-Skill-Usage.md) ·
 [Contributing](./wiki/Contributing.md).
 
-## Changelog
+## Releases
 
-See [`CHANGELOG.md`](./CHANGELOG.md). Migrating from 2.x? Read
+Release notes (resolved issues + every commit) are on
+[GitHub Releases](https://github.com/D0n9X1n/hexo-tag-cloud/releases). Migrating from 2.x? Read
 [`docs/migration-2.x-to-3.x.md`](./docs/migration-2.x-to-3.x.md).
 
 # Thanks

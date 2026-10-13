@@ -2,7 +2,7 @@
 
 // Locks the contracts established by sub-project D ("v3.0.0 release").
 // This is a contract-checker, NOT a coverage source — it asserts the shape
-// of the tarball, the workflow files, the CHANGELOG, the migration guide,
+// of the tarball, the workflow files, the migration guide,
 // the wiki, and the demo. If any of these regress the suite fails fast.
 
 const test = require('node:test');
@@ -22,8 +22,8 @@ function exists(rel) {
   return fs.existsSync(path.join(ROOT, rel));
 }
 
-test('package.json: version is 3.0.0', () => {
-  assert.equal(PKG.version, '3.0.0');
+test('package.json: version is valid semver (bumped per release, never pinned) (#52)', () => {
+  assert.match(PKG.version, /^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/);
 });
 
 test('package.json: files[] contains the four shipped roots', () => {
@@ -52,10 +52,8 @@ test('package.json: bin shim points at the install CLI', () => {
   assert.equal(PKG.bin['hexo-tag-cloud'], 'bin/hexo-tag-cloud-install.js');
 });
 
-test('CHANGELOG.md exists and has the [Unreleased] + dated [3.0.0] headings', () => {
-  const body = read('CHANGELOG.md');
-  assert.match(body, /^## \[Unreleased\]$/m);
-  assert.match(body, /^## \[3\.0\.0\] — \d{4}-\d{2}-\d{2}$/m);
+test('no CHANGELOG file: GitHub Release notes are the changelog (#55)', () => {
+  assert.ok(!exists('CHANGELOG.md'));
 });
 
 test('docs/migration-2.x-to-3.x.md exists and is non-trivial', () => {
@@ -94,20 +92,44 @@ test('release workflow: triggers on v* tags and uses OIDC + verify-pack', () => 
   assert.ok(exists('.github/workflows/release.yml'));
   const body = read('.github/workflows/release.yml');
   assert.match(body, /tags:/);
-  assert.match(body, /['"]v\*['"]/);
+  assert.match(body, /['"]v\[0-9\]\+\.\[0-9\]\+\.\[0-9\]\+\*['"]/);
   assert.match(body, /--provenance/);
   assert.match(body, /id-token:\s*write/);
   assert.match(body, /verify-pack/);
 });
 
-test('publish-gh-packages workflow: registers GH Packages mirror with idempotency', () => {
-  assert.ok(exists('.github/workflows/publish-gh-packages.yml'));
-  const body = read('.github/workflows/publish-gh-packages.yml');
+test('release workflow: gates on exact master CI and publishes notes with issues + commits', () => {
+  const body = read('.github/workflows/release.yml');
+  // Top-level token is read-only; write is granted per job.
+  assert.match(body, /^permissions:\n {2}contents: read$/m);
+  assert.match(body, /merge-base --is-ancestor "\$GITHUB_SHA" refs\/remotes\/origin\/master/);
+  assert.match(body, /workflows\/test\.yml\/runs\?branch=master/);
+  assert.match(body, /scripts\/release-notes\.sh/);
+  assert.match(body, /scripts\/test-release-notes\.sh/);
+  assert.match(body, /softprops\/action-gh-release@[0-9a-f]{40}/);
+  assert.match(body, /issues: read/);
+  // Every third-party action is pinned to a full commit SHA.
+  for (const m of body.matchAll(/uses:\s*(\S+)/g)) {
+    assert.match(m[1], /@[0-9a-f]{40}$/, 'unpinned action: ' + m[1]);
+  }
+});
+
+test('release tooling scripts are tracked and executable', () => {
+  for (const f of ['scripts/release-notes.sh', 'scripts/release-issues.py',
+                   'scripts/test-release-notes.sh', 'scripts/publish-wiki.sh',
+                   'scripts/test-wiki-publish.sh']) {
+    assert.ok(exists(f), f + ' must exist');
+    assert.ok(fs.statSync(path.join(ROOT, f)).mode & 0o111, f + ' must be executable');
+  }
+});
+
+test('GitHub Packages mirror is a gated job in release.yml, not a standalone workflow (#53)', () => {
+  assert.ok(!exists('.github/workflows/publish-gh-packages.yml'));
+  const body = read('.github/workflows/release.yml');
+  assert.match(body, /publish-github-packages:[\s\S]*needs: \[publish-npm\]/);
   assert.match(body, /npm\.pkg\.github\.com/);
-  assert.match(body, /workflow_run|workflow_dispatch/);
   assert.match(body, /packages:\s*write/);
-  // Idempotency check uses npm view to skip if the version is already published.
-  assert.match(body, /npm\s+view/);
+  assert.match(body, /npm view "@d0n9x1n\/hexo-tag-cloud@/);
 });
 
 test('deploy-demo workflow: uses workflow_run + Pages deploy + stale guard', () => {
@@ -169,16 +191,16 @@ test('README.ZH.md badges: parity with English README', () => {
   assert.match(body, /img\.shields\.io\/npm\/l\/hexo-tag-cloud/);
 });
 
-test('README.md has Wiki + Changelog sections linking to the in-repo docs', () => {
+test('README.md links to the wiki, GitHub Releases, and the migration guide', () => {
   const body = read('README.md');
   assert.match(body, /\.\/wiki\/Home\.md|\(\.\/wiki\//);
-  assert.match(body, /CHANGELOG\.md/);
+  assert.match(body, /github\.com\/D0n9X1n\/hexo-tag-cloud\/releases/);
   assert.match(body, /docs\/migration-2\.x-to-3\.x\.md/);
 });
 
-test('README.ZH.md has Wiki + Changelog sections linking to the in-repo docs', () => {
+test('README.ZH.md links to the wiki, GitHub Releases, and the migration guide', () => {
   const body = read('README.ZH.md');
   assert.match(body, /\.\/wiki\/Home\.md|\(\.\/wiki\//);
-  assert.match(body, /CHANGELOG\.md/);
+  assert.match(body, /github\.com\/D0n9X1n\/hexo-tag-cloud\/releases/);
   assert.match(body, /docs\/migration-2\.x-to-3\.x\.md/);
 });

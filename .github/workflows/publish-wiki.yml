@@ -1,0 +1,44 @@
+name: Publish wiki
+
+# One-way mirror: wiki/*.md in this repo is the only source of truth. Every
+# push to master republishes it to the GitHub wiki, so edits made directly on
+# the wiki are overwritten on the next publish.
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-wiki
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    # The only job that pushes Git content it did not build. The grant lives on
+    # the job rather than the workflow so it cannot widen to a future sibling.
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Clone wiki repository
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git clone \
+            "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.wiki.git" \
+            wiki-repo
+
+      - name: Build wiki mirror
+        id: mirror
+        run: scripts/publish-wiki.sh wiki wiki-repo "$GITHUB_SHA"
+
+      - name: Push wiki mirror
+        if: steps.mirror.outputs.changed == 'true'
+        run: git -C wiki-repo push origin HEAD:master
