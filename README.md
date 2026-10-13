@@ -74,7 +74,7 @@ npx hexo-tag-cloud install-skill            # use --force to refresh an older co
 Then ask Claude Code to *"add a tag cloud to my Hexo blog"*. The skill checks that the plugin
 is installed and runs `npx hexo-tag-cloud inspect` to find your theme and its templates. It
 picks a built-in recipe, a `--target` template, or inject mode, shows you the dry-run diff,
-and applies it only after you approve. See [AI-Skill-Usage](./wiki/AI-Skill-Usage.md).
+and applies it only after you approve. See [AI-Skill-Usage](https://github.com/D0n9X1n/hexo-tag-cloud/wiki/AI-Skill-Usage).
 
 ## How to Use
 
@@ -88,7 +88,7 @@ and applies it only after you approve. See [AI-Skill-Usage](./wiki/AI-Skill-Usag
 
 Each install command is a dry run until you add `--apply`. Run `npx hexo-tag-cloud inspect`
 to see your theme's directory and its templates, ranked by how likely each one is to be a
-sidebar. The [Installation](./wiki/Installation.md) wiki page has the details.
+sidebar. The [Installation](https://github.com/D0n9X1n/hexo-tag-cloud/wiki/Installation) wiki page has the details.
 
 ### CLI reference
 
@@ -138,14 +138,14 @@ tag_cloud:
   # mount: '#sidebar'                   # inject mode: CSS selectors, first match wins
 ```
 
-See [Customization](./wiki/Customization.md) for every option and some ready-made recipes.
+See [Customization](https://github.com/D0n9X1n/hexo-tag-cloud/wiki/Customization) for every option and some ready-made recipes.
 
 ## Documentation
 
-- [Wiki home](./wiki/Home.md): [Installation](./wiki/Installation.md) ·
-  [Customization](./wiki/Customization.md) · [Troubleshooting](./wiki/Troubleshooting.md) ·
-  [AI-Skill-Usage](./wiki/AI-Skill-Usage.md) · [Contributing](./wiki/Contributing.md)
-- [Migrating from 2.x](./docs/migration-2.x-to-3.x.md)
+- [Wiki home](https://github.com/D0n9X1n/hexo-tag-cloud/wiki/Home): [Installation](https://github.com/D0n9X1n/hexo-tag-cloud/wiki/Installation) ·
+  [Customization](https://github.com/D0n9X1n/hexo-tag-cloud/wiki/Customization) · [Troubleshooting](https://github.com/D0n9X1n/hexo-tag-cloud/wiki/Troubleshooting) ·
+  [AI-Skill-Usage](https://github.com/D0n9X1n/hexo-tag-cloud/wiki/AI-Skill-Usage) · [Contributing](https://github.com/D0n9X1n/hexo-tag-cloud/wiki/Contributing)
+- [Migrating from 2.x](https://github.com/D0n9X1n/hexo-tag-cloud/wiki/Migration-v2-to-v3)
 - [Releases](https://github.com/D0n9X1n/hexo-tag-cloud/releases): release notes list resolved issues and every commit
 
 ## Support

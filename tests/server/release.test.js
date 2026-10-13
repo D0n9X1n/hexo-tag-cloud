@@ -56,9 +56,9 @@ test('no CHANGELOG file: GitHub Release notes are the changelog (#55)', () => {
   assert.ok(!exists('CHANGELOG.md'));
 });
 
-test('docs/migration-2.x-to-3.x.md exists and is non-trivial', () => {
-  const body = read('docs/migration-2.x-to-3.x.md');
-  assert.ok(body.length > 1000, 'migration guide is suspiciously short');
+test('no docs/ folder: wiki/ is the only documentation root', () => {
+  assert.ok(!exists('docs'), 'docs/ must not exist; put pages in wiki/');
+  const body = read('wiki/Migration-v2-to-v3.md');
   assert.match(body, /managed.block/i);
 });
 
@@ -160,16 +160,18 @@ test('demo sidebar carries exactly the block the installer CLI emits', () => {
     'demo must match `npx hexo-tag-cloud install --apply` output, inside </aside>');
 });
 
-test('wiki/ has the six expected pages', () => {
+test('wiki/ has every page in English and Chinese (separate files)', () => {
   for (const page of [
-    'Home.md',
-    'Installation.md',
-    'Customization.md',
-    'Troubleshooting.md',
-    'AI-Skill-Usage.md',
-    'Contributing.md',
+    'Home',
+    'Installation',
+    'Customization',
+    'Troubleshooting',
+    'AI-Skill-Usage',
+    'Contributing',
+    'Migration-v2-to-v3',
   ]) {
-    assert.ok(exists(`wiki/${page}`), `wiki/${page} missing`);
+    assert.ok(exists(`wiki/${page}.md`), `wiki/${page}.md missing`);
+    assert.ok(exists(`wiki/${page}-zh-CN.md`), `wiki/${page}-zh-CN.md missing`);
   }
 });
 
@@ -193,16 +195,16 @@ test('README.ZH.md badges: parity with English README', () => {
 
 test('README.md links to the wiki, GitHub Releases, and the migration guide', () => {
   const body = read('README.md');
-  assert.match(body, /\.\/wiki\/Home\.md|\(\.\/wiki\//);
+  assert.match(body, /github\.com\/D0n9X1n\/hexo-tag-cloud\/wiki\/Home\)/);
   assert.match(body, /github\.com\/D0n9X1n\/hexo-tag-cloud\/releases/);
-  assert.match(body, /docs\/migration-2\.x-to-3\.x\.md/);
+  assert.match(body, /github\.com\/D0n9X1n\/hexo-tag-cloud\/wiki\/Migration-v2-to-v3\)/);
 });
 
 test('README.ZH.md links to the wiki, GitHub Releases, and the migration guide', () => {
   const body = read('README.ZH.md');
-  assert.match(body, /\.\/wiki\/Home\.md|\(\.\/wiki\//);
+  assert.match(body, /github\.com\/D0n9X1n\/hexo-tag-cloud\/wiki\/Home-zh-CN\)/);
   assert.match(body, /github\.com\/D0n9X1n\/hexo-tag-cloud\/releases/);
-  assert.match(body, /docs\/migration-2\.x-to-3\.x\.md/);
+  assert.match(body, /github\.com\/D0n9X1n\/hexo-tag-cloud\/wiki\/Migration-v2-to-v3-zh-CN\)/);
 });
 
 test('Claude Code skill ships as a single file; no plugin or settings files in the repo', () => {
