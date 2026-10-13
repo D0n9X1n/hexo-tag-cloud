@@ -152,12 +152,12 @@ test('demo/package.json exists and references the plugin (file:.. for local dev)
   // at tag time. The release workflow check is the right guard for that.
 });
 
-test('demo/themes/landscape/layout/_partial/sidebar.ejs has the managed block markers', () => {
+test('demo sidebar carries exactly the block the installer CLI emits', () => {
+  const { emitManagedBlock } = require('../../lib/installer/partial-emitter');
+  const { resolveTheme } = require('../../lib/installer/theme-heuristics');
   const sidebar = read('demo/themes/landscape/layout/_partial/sidebar.ejs');
-  assert.match(sidebar, /<!--\s*hexo-tag-cloud BEGIN\s*-->/);
-  assert.match(sidebar, /<!--\s*hexo-tag-cloud END\s*-->/);
-  // The body must call the helper that emits anchor list TagCanvas reads.
-  assert.match(sidebar, /tagcloud\(\)/);
+  assert.ok(sidebar.includes(emitManagedBlock(resolveTheme('landscape')) + '\n</aside>'),
+    'demo must match `npx hexo-tag-cloud install --apply` output, inside </aside>');
 });
 
 test('wiki/ has the six expected pages', () => {
@@ -203,4 +203,20 @@ test('README.ZH.md links to the wiki, GitHub Releases, and the migration guide',
   assert.match(body, /\.\/wiki\/Home\.md|\(\.\/wiki\//);
   assert.match(body, /github\.com\/D0n9X1n\/hexo-tag-cloud\/releases/);
   assert.match(body, /docs\/migration-2\.x-to-3\.x\.md/);
+});
+
+test('Claude Code skill ships as a single file; no plugin or settings files in the repo', () => {
+  assert.ok(exists('skills/hexo-tag-cloud/SKILL.md'));
+  assert.deepEqual(fs.readdirSync(path.join(ROOT, 'skills', 'hexo-tag-cloud')), ['SKILL.md']);
+  for (const f of ['.claude-plugin', '.claude/settings.json', '.claude/settings.local.json']) {
+    assert.ok(!exists(f), f + ' must not be committed');
+  }
+});
+
+test('repository is Claude Code only: no other coding-assistant config', () => {
+  for (const f of ['.github/copilot-instructions.md', '.cursorrules', '.cursor',
+                   'AGENTS.md', 'GEMINI.md', '.windsurfrules']) {
+    assert.ok(!exists(f), f + ' must not exist');
+  }
+  assert.ok(exists('CLAUDE.md'));
 });
