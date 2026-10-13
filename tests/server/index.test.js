@@ -70,8 +70,10 @@ function makeFakeHexo(opts) {
   const config = (tagCloudCfg === undefined)
     ? {}
     : { tag_cloud: tagCloudCfg };
+  if (opts && opts.root !== undefined) config.root = opts.root;
   const filters = [];
-  return {
+  const injected = [];
+  const hexo = {
     base_dir:   '/site',
     public_dir: '/site/public',
     config,
@@ -80,9 +82,17 @@ function makeFakeHexo(opts) {
       filter: {
         register: (name, fn) => filters.push({ name, fn }),
       },
+      injector: {
+        register: (entry, value) => injected.push({ entry, value }),
+      },
     },
     _filters: filters,
+    _injected: injected,
   };
+  if (opts && opts.tags !== undefined) {
+    hexo.locals = { get: (name) => (name === 'tags' ? opts.tags : undefined) };
+  }
+  return hexo;
 }
 
 async function loadAndFire(opts) {
@@ -108,7 +118,7 @@ async function loadAndFire(opts) {
 function assertFileWrites() {
   assert.equal(captured.copyFile.length, 1, 'copyFile called once');
   assert.deepEqual(captured.copyFile[0], {
-    src: '/site/node_modules/hexo-tag-cloud/lib/tagcanvas.js',
+    src: path.join(REPO_ROOT, 'lib', 'tagcanvas.js'),
     dest: '/site/public/js/tagcanvas.js',
   });
   assert.equal(captured.writeFile.length, 1, 'writeFile called once');
@@ -255,6 +265,62 @@ test('bug 1 regression: textFont with $& survives the full pipeline', async () =
   assert.match(js, /TagCanvas\.textFont = "My\$&Font, .*Noto Sans CJK SC.*";/);
   assert.ok(!js.includes('${textFont}'),
     'no template marker should leak through');
+});
+
+// --- inject mode (#48) ---------------------------------------------------
+
+test('default config registers no injector', async () => {
+  const { fakeHexo } = await loadAndFire({});
+  assert.deepEqual(fakeHexo._injected, []);
+});
+
+test('inject: true registers root-aware body_end scripts', async () => {
+  const { fakeHexo } = await loadAndFire({
+    tag_cloud: { inject: true }, root: '/blog', tags: [],
+  });
+  assert.deepEqual(fakeHexo._injected, [{
+    entry: 'body_end',
+    value: '<script src="/blog/js/tagcanvas.js"></script>' +
+           '<script src="/blog/js/tagcloud.js"></script>',
+  }]);
+});
+
+test('inject: true writes tags with encoded, root-aware URLs; skips empty tags', async () => {
+  const tags = {
+    toArray: () => [
+      { name: '中文', path: 'tags/中文/', length: 2 },
+      { name: 'C++', path: 'tags/C/', length: 1 },
+      { name: 'empty', path: 'tags/empty/', length: 0 },
+    ],
+  };
+  await loadAndFire({ tag_cloud: { inject: true }, root: '/blog/', tags });
+  const js = getWrittenJs();
+  assert.ok(js.includes(
+    '[{"name":"中文","url":"/blog/tags/%E4%B8%AD%E6%96%87/"},' +
+    '{"name":"C++","url":"/blog/tags/C/"}]'), js);
+  assert.ok(!js.includes('empty'));
+});
+
+test('inject: true accepts a plain array and a missing locals store', async () => {
+  await loadAndFire({ tag_cloud: { inject: true },
+    tags: [{ name: 'a', path: 'tags/a/', length: 1 }] });
+  assert.ok(getWrittenJs().includes('[{"name":"a","url":"/tags/a/"}]'));
+  await loadAndFire({ tag_cloud: { inject: true } });
+  assert.ok(getWrittenJs().includes('var tags = [];'));
+  await loadAndFire({ tag_cloud: { inject: true }, tags: null });
+  assert.ok(getWrittenJs().includes('var tags = [];'));
+});
+
+test('inject: true without an injector API (old hexo) still generates', async () => {
+  resetCaptures();
+  stubModule('fs/promises', makeFspStub());
+  clearIndexCache();
+  const factory = require(INDEX_PATH);
+  const fakeHexo = makeFakeHexo({ tag_cloud: { inject: true }, tags: [] });
+  delete fakeHexo.extend.injector;
+  factory(fakeHexo);
+  await fakeHexo._filters[0].fn();
+  assert.equal(captured.writeFile.length, 1);
 });
 
 // --- snapshot lock -------------------------------------------------------

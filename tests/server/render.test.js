@@ -99,3 +99,40 @@ test('numeric coercion: textHeight string "20" → emitted as number 20', () => 
   const out = renderTagCloudJs({ ...baseOpts, textHeight: '20' });
   assert.match(out, /TagCanvas\.textHeight = 20;/);
 });
+
+// --- #50: bootstrap no longer clobbers window.onload or throws ------------
+
+test('bootstrap registers a load listener instead of replacing window.onload', () => {
+  const out = renderTagCloudJs(baseOpts);
+  assert.ok(!out.includes('window.onload'));
+  assert.match(out, /window\.addEventListener\('load', start\)/);
+  assert.ok(!out.includes('console.log'));
+});
+
+test('bootstrap is a no-op on pages without #resCanvas and guards the container', () => {
+  const out = renderTagCloudJs(baseOpts);
+  assert.match(out, /if \(!document\.getElementById\('resCanvas'\) \|\| typeof TagCanvas === 'undefined'\) return;/);
+  assert.match(out, /if \(container\) container\.style\.display = 'none';/);
+});
+
+test('non-inject bootstrap carries no tag data or mount code', () => {
+  const out = renderTagCloudJs(baseOpts, [{ name: 'x', url: '/x' }]);
+  assert.ok(!out.includes('var tags'));
+});
+
+// --- #48: inject mode ------------------------------------------------------
+
+test('inject bootstrap embeds tags as JSON and builds links with textContent', () => {
+  const out = renderTagCloudJs({ ...baseOpts, inject: true, mount: '#a, .b ,' },
+    [{ name: '</script><b>', url: '/tags/x/' }]);
+  assert.ok(out.includes('var tags = [{"name":"</script><b>","url":"/tags/x/"}];'));
+  assert.ok(out.includes('var selectors = ["#a",".b"];'));
+  assert.match(out, /a\.textContent = tags\[j\]\.name;/);
+  assert.ok(!out.includes('innerHTML'));
+  new Function(out); // syntactically valid
+});
+
+test('inject bootstrap without a tag list emits an empty array', () => {
+  const out = renderTagCloudJs({ ...baseOpts, inject: true, mount: '#a' });
+  assert.ok(out.includes('var tags = [];'));
+});

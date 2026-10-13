@@ -1,18 +1,6 @@
-function addLoadEvent(func) {
-    var oldonload = window.onload;
-    if (typeof window.onload != 'function') {
-        window.onload = func;
-    } else {
-        window.onload = function() {
-            oldonload();
-            func();
-        };
-    }
-}
-
-addLoadEvent(function() {
-    console.log('tag cloud plugin rock and roll!');
-
+(function () {
+function start() {
+    if (!document.getElementById('resCanvas') || typeof TagCanvas === 'undefined') return;
     try {
         TagCanvas.textFont = "Helvetica, Arial, \"PingFang SC\", \"Microsoft YaHei\", \"Hiragino Sans GB\", \"Source Han Sans CN\", \"Noto Sans CJK SC\", sans-serif";
         TagCanvas.textColour = "#333";
@@ -38,7 +26,13 @@ addLoadEvent(function() {
         TagCanvas.Start('resCanvas');
         TagCanvas.tc['resCanvas'].Wheel(true);
     } catch (e) {
-        console.log(e);
-        document.getElementById('myCanvasContainer').style.display = 'none';
+        var container = document.getElementById('myCanvasContainer');
+        if (container) container.style.display = 'none';
     }
-});
+}
+if (document.readyState === 'complete') {
+    start();
+} else {
+    window.addEventListener('load', start);
+}
+})();
