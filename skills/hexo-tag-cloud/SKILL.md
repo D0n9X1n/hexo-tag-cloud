@@ -1,140 +1,132 @@
-# name
+---
+name: hexo-tag-cloud
+description: Add, repair, or upgrade the hexo-tag-cloud animated 3D tag cloud in any Hexo blog theme (EJS, Nunjucks/Swig, Pug/Jade, or JSX themes such as Icarus). Use when the user wants a tag cloud in their Hexo site, asks to install hexo-tag-cloud, or says their tag cloud is blank or broke after a theme update. Not for other static-site generators.
+---
 
-hexo-tag-cloud
+# hexo-tag-cloud
 
-## description
+Put the hexo-tag-cloud canvas into a Hexo site, whatever theme it uses.
+The `hexo-tag-cloud` CLI does every file edit: it previews by default,
+writes only with `--apply`, and wraps its edit in managed-block markers
+so re-runs are idempotent. Never hand-edit templates when the CLI can
+do it, and never edit `node_modules/hexo-tag-cloud/lib/tagcanvas.js`.
 
-Install or refresh the `hexo-tag-cloud` plugin's animated 3D tag cloud
-inside any [Hexo](https://hexo.io/) blog. Edits the active theme's
-sidebar partial through a deterministic CLI (`npx hexo-tag-cloud
-install`) so users can adopt or upgrade the plugin without
-hand-editing `ejs`/`swig`/`pug` snippets across themes.
+## Workflow
 
-## when_to_use
+Run every command from the Hexo site root (the directory with
+`_config.yml`). If the user is not in one, ask for the path.
 
-Trigger this skill when the user says any of:
+### 1. Make sure the plugin is installed
 
-- "Add a tag cloud to my hexo site"
-- "Install hexo-tag-cloud"
-- "Wire up the 3D tag cloud in my theme"
-- "Re-run hexo-tag-cloud after a theme upgrade"
-- "How do I add hexo-tag-cloud to landscape / next / butterfly /
-  icarus / fluid?"
-- "My existing tag cloud broke after updating the theme"
+Read `package.json`. If `hexo-tag-cloud` is not a dependency:
 
-Do NOT trigger for general Hexo questions, custom canvas drawing,
-non-Hexo static-site generators, or for editing arbitrary theme
-partials unrelated to the tag cloud.
-
-## usage
-
-The bundled CLI is the durable contract. The skill exists to make AI
-agents call it correctly and explain its output to the user.
-
-**Always-do checklist** (in order):
-
-1. Confirm the user is in a Hexo site root (presence of `_config.yml`
-   AND a `themes/` directory). If not, ask the user for the site
-   root path or stop.
-2. Detect the theme by reading `_config.yml`'s `theme:` field, or run
-   `node ./skills/hexo-tag-cloud/scripts/detect-theme.js` from the
-   site root. (You may also call the bundled
-   `inspect-partials.js` to show the user candidate partial files
-   the installer would target.)
-3. Run a **dry-run first**:
-   ```
-   npx hexo-tag-cloud install
-   ```
-   This prints either the unified diff that would be written, the
-   exit-code 2 conflict diff, or the legacy-install message — see
-   `failure_modes` below for what each means.
-4. Show the diff to the user **verbatim**, including the file path the
-   installer would mutate. Wait for explicit approval.
-5. Only after approval, run:
-   ```
-   npx hexo-tag-cloud install --apply
-   ```
-6. Tell the user to run `hexo clean && hexo generate && hexo server`
-   to verify, and to point their browser at the homepage to see the
-   tag cloud.
-
-**Never run `--apply` without showing the dry-run diff first.** Never
-pass `--force` unless the user has explicitly told you to overwrite a
-managed block they edited themselves. Never edit `lib/tagcanvas.js` —
-it is vendored upstream and must stay byte-identical.
-
-If the user's `_config.yml` has a nested `theme:` mapping (e.g.
-`theme:\n  name: butterfly`), the bundled YAML parser intentionally
-refuses; pass `--theme <name>` explicitly. Likewise for themes
-installed as `hexo-theme-<name>` npm packages, pass `--theme-dir
-<path>` so the installer can find the partial.
-
-## examples
-
-**1. Fresh install on landscape (the default theme):**
-
-```
-$ cd ~/blog                                       # site root
-$ npx hexo-tag-cloud install                       # dry-run prints unified diff
---- before
-+++ after
-+<!-- hexo-tag-cloud:begin -->
-+<canvas id="resCanvas" width="500" height="400" style="margin: 0 auto;"></canvas>
-+<script src="/js/tagcanvas.js"></script>
-+<script src="/js/tagcloud.js"></script>
-+<!-- hexo-tag-cloud:end -->
-[dry-run] would write 187 bytes to themes/landscape/layout/_partial/sidebar.ejs
-(re-run with --apply to write)
-$ npx hexo-tag-cloud install --apply
-✓ wrote tag-cloud managed block to themes/landscape/layout/_partial/sidebar.ejs
-$ hexo clean && hexo generate && hexo server
+```bash
+npm install hexo-tag-cloud --save
 ```
 
-**2. Re-running after an existing install (idempotent):**
+Without it, Hexo never generates `js/tagcloud.js` and the cloud stays blank.
 
-```
-$ npx hexo-tag-cloud install --apply
-tag-cloud managed block already up-to-date; no changes written.
-```
+### 2. Inspect the site
 
-**3. The user customised the canvas size, then ran the installer
-again. Conflict surfaces, you ask before overwriting:**
-
-```
-$ npx hexo-tag-cloud install --apply
---- before
-+++ after
--<canvas id="resCanvas" width="999" height="800" ...>
-+<canvas id="resCanvas" width="500" height="400" ...>
-...
-run with --apply --force to overwrite the user-edited block.
+```bash
+npx hexo-tag-cloud inspect
 ```
 
-→ Tell the user: "I see you've edited the managed block (changed
-canvas size to 999×800). I can either keep your edits (do nothing)
-or overwrite them with the latest defaults (`--force`). Which would
-you like?" Wait for the user's answer before running `--force`.
+The JSON report contains `theme`, `themeDir`, `themeInNodeModules`,
+`builtInRecipe` (null when the theme has none), `pluginInstalled`,
+`injectEnabled`, and `candidates`, which are the theme's templates ranked by
+how likely they are to be a sidebar or widget. Each candidate has `path`,
+`engine`, `writable`, `hasAsideClose`, and `hasManagedBlock`.
 
-## failure_modes
+### 3. Choose the integration path
 
-The CLI returns these exit codes — translate them for the user
-verbatim:
+Pick the first path that applies:
 
-- **Exit 0** — success or dry-run succeeded.
-- **Exit 1 (theme detection)** — could not figure out which theme is
-  active. Suggest the user pass `--theme landscape` (or `next`,
-  `butterfly`, `icarus`, `fluid`, `generic`) or `--theme-dir <path>`.
-- **Exit 2 (conflict)** — the managed block already exists in the
-  partial but its body differs from what the installer would write.
-  The unified diff is printed to stdout. Ask the user whether to
-  overwrite (re-run with `--apply --force`) or keep the existing
-  edits (do nothing).
-- **Exit 3 (legacy install)** — the partial contains a manually-
-  installed tag-cloud snippet without managed-block markers. Tell
-  the user to remove the existing `<canvas id="resCanvas">` block +
-  the two `<script>` tags by hand, then re-run the installer. Do
-  NOT try to delete it for them — there's no automated migration in
-  this version.
-- **Exit 4 (write conflict)** — target partial file does not exist
-  for the chosen theme, or the installer could not write to it.
-  Suggest `--theme-dir <path>` for npm-installed themes.
+| Situation | Path |
+|---|---|
+| `builtInRecipe` is set (landscape, next, butterfly, fluid) | **A. Built-in recipe** |
+| A `writable` candidate is clearly the sidebar/widget area | **B. Explicit target** |
+| JSX theme (Icarus), `themeInNodeModules: true`, no writable candidate, or the user wants no template edits | **C. Inject mode** |
+
+If you are unsure which candidate is right, open the top two or three
+and show the user what each one renders. Ask before choosing.
+
+**A. Built-in recipe**
+
+```bash
+npx hexo-tag-cloud install            # dry run: prints the diff
+```
+
+**B. Explicit target** (any `.ejs`, `.njk`, `.swig`, `.pug`, `.jade`)
+
+```bash
+npx hexo-tag-cloud install --target layout/_partial/sidebar.ejs --before "</aside>"
+```
+
+`--target` is relative to the theme dir. `--before <text>` inserts the
+block before the last line that contains `<text>`. Use it to keep the cloud
+inside a container (`</aside>`, `</div>` of a widget list). Without it,
+the block is appended at the end of the file. For Pug, append (omit `--before`)
+unless you have confirmed that the indentation of the anchor line is column 0.
+
+**C. Inject mode** (no template edits; works with every theme)
+
+Add to the site's `_config.yml` (merge into an existing `tag_cloud:` block):
+
+```yaml
+tag_cloud:
+  inject: true
+  # mount: '#sidebar'   # optional CSS selector list; first match wins
+```
+
+Hexo's injector then adds the scripts to every page, and the cloud mounts
+into the first element that matches `mount`. The default list covers
+landscape, NexT, Butterfly, Icarus and Fluid sidebars. If the cloud
+appears in the wrong place, ask the user where they want it and set
+`mount` to that element's selector. Show the YAML change and get approval
+before you write it.
+
+### 4. Preview, approve, apply
+
+For paths A and B:
+
+1. Show the user the dry-run output verbatim, including the target path.
+2. Wait for explicit approval.
+3. Re-run the same command with `--apply`.
+
+Never pass `--force` unless the user explicitly asks to overwrite a
+managed block they edited themselves.
+
+### 5. Verify
+
+```bash
+npx hexo clean && npx hexo generate
+```
+
+Then confirm that:
+
+- `public/js/tagcloud.js` and `public/js/tagcanvas.js` exist;
+- for paths A and B, a generated page contains `id="resCanvas"` with
+  `<a` links inside it (`grep -l resCanvas public/index.html`);
+- for path C, `public/index.html` loads `js/tagcloud.js`.
+
+Suggest `npx hexo server` so the user can look at the result in a browser.
+
+## Exit codes
+
+- **0**: success or dry run.
+- **1**: theme not detected, no built-in recipe, or unsupported engine. Follow
+  the printed hint (`inspect`, then `--target`, or inject mode).
+- **2**: the managed block exists but was edited by hand. A diff is printed.
+  Ask whether to keep the edits (do nothing) or overwrite them (`--apply --force`).
+- **3**: a hand-written tag cloud without markers exists. Show it to the
+  user. Either they remove it and you re-run, or they keep it and you stop.
+  Do not delete it without their approval.
+- **4**: the target file is missing or unwritable. Check `--theme-dir` /
+  `--target` against the `inspect` output.
+
+## Customization
+
+Appearance lives in `_config.yml` → `tag_cloud:` (`textFont`, `textColor`,
+`textHeight`, `outlineColor`, `maxSpeed`, `pauseOnSelected`). Canvas size
+for paths A/B: `--canvas-width`, `--canvas-height`, `--canvas-style`.
