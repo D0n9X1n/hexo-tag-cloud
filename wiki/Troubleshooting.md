@@ -1,5 +1,7 @@
 # Troubleshooting
 
+**English** · [简体中文](Troubleshooting-zh-CN)
+
 ## Canvas is blank
 
 The canvas frame appears, but no tags rotate inside it.
@@ -42,7 +44,7 @@ If no selector matches, nothing is mounted. A page that already contains a
 
 The canvas draws text with the `textFont` stack. A single-family
 `textFont` gets a CJK fallback stack appended automatically (see
-[Customization](Customization.md)). If a visitor has none of those fonts
+[Customization](Customization)). If a visitor has none of those fonts
 installed, self-host one and name it explicitly:
 
 ```yaml

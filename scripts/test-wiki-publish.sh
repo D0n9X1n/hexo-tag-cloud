@@ -4,7 +4,9 @@ set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 publisher="$root/scripts/publish-wiki.sh"
+checker="$root/scripts/check-wiki.py"
 workflow="$root/.github/workflows/publish-wiki.yml"
+guidance="$root/CLAUDE.md"
 
 fail() {
   printf 'wiki publish test: %s\n' "$1" >&2
@@ -12,6 +14,7 @@ fail() {
 }
 
 [[ -x "$publisher" ]] || fail "publisher is missing or not executable"
+[[ -x "$checker" ]] || fail "checker is missing or not executable"
 [[ -f "$workflow" ]] || fail "workflow is missing"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
@@ -74,5 +77,140 @@ done
 if grep -Eq '^[[:space:]]*paths(-ignore)?:' "$workflow"; then
   fail "workflow filters master pushes instead of publishing after every merge"
 fi
+
+grep -Fq 'scripts/check-wiki.py' "$workflow" || fail "workflow publishes without validating the wiki"
+[[ ! -e "$root/docs" ]] || fail "docs/ must not exist; wiki/ is the only documentation folder"
+
+grep -Fq 'only source of truth' "$guidance" || fail "guidance no longer makes wiki/ canonical"
+grep -Fq 'Never edit the GitHub wiki directly' "$guidance" || fail "guidance permits divergent browser edits"
+grep -Fq 'overwritten on the next publish' "$guidance" || fail "guidance omits one-way mirror behavior"
+grep -Fq 'Load only the English files for routine agent context' "$guidance" || fail "guidance must require English-only context"
+grep -Fq '<Page>-zh-CN.md' "$guidance" || fail "guidance must name separate Chinese files"
+python3 - "$guidance" <<'PY2'
+from pathlib import Path
+import sys
+
+guidance = Path(sys.argv[1]).read_text(encoding="utf-8")
+read_first = guidance.split("## Read first", 1)[1].split("**Canonical", 1)[0]
+assert "-zh-CN.md" not in read_first, "routine context must reference English pages only"
+PY2
+
+# Exercise the checker in throwaway Git repositories so every mutation is a
+# tracked wiki source change and cannot affect the real documentation tree.
+checker_fixture="$tmp/checker-fixture"
+mkdir -p "$checker_fixture/scripts" "$checker_fixture/wiki"
+cp "$checker" "$checker_fixture/scripts/check-wiki.py"
+cp "$root/wiki/"*.md "$checker_fixture/wiki/"
+git -C "$checker_fixture" init -q -b master
+git -C "$checker_fixture" add scripts wiki
+git -C "$checker_fixture" config user.name test
+git -C "$checker_fixture" config user.email test@example.invalid
+git -C "$checker_fixture" commit -q -m fixture
+
+assert_checker_rejects() {
+  local name="$1"
+  local expected="$2"
+  local fixture="$tmp/$name"
+  shift 2
+
+  cp -R "$checker_fixture" "$fixture"
+  "$@" "$fixture"
+  git -C "$fixture" add wiki
+  if (cd "$fixture" && python3 scripts/check-wiki.py >output 2>&1); then
+    fail "checker accepted $name mutation"
+  fi
+  grep -Fq -- "$expected" "$fixture/output" || {
+    printf 'wiki publish test: checker output for %s:\n' "$name" >&2
+    cat "$fixture/output" >&2
+    fail "checker rejected $name without the expected diagnostic: $expected"
+  }
+}
+
+replace_fixture_text() {
+  local fixture="$1" page="$2" old="$3" new="$4"
+  python3 - "$fixture/wiki/$page.md" "$old" "$new" <<'PY2'
+from pathlib import Path
+import sys
+
+path = Path(sys.argv[1])
+text = path.read_text(encoding="utf-8")
+assert sys.argv[2] in text, (path, sys.argv[2])
+path.write_text(text.replace(sys.argv[2], sys.argv[3]), encoding="utf-8")
+PY2
+}
+
+mutate_mixed_language() {
+  # Preserve heading parity so only the legacy-marker rule can reject the mutation.
+  printf '\n## English\n\n## 中文\n' >> "$1/wiki/Installation.md"
+  printf '\n## English\n\n## 中文\n' >> "$1/wiki/Installation-zh-CN.md"
+}
+
+mutate_missing_chinese_page() {
+  rm "$1/wiki/Installation-zh-CN.md"
+}
+
+mutate_missing_english_page() {
+  rm "$1/wiki/Installation.md"
+}
+
+mutate_heading_mismatch() {
+  replace_fixture_text "$1" Installation '## Prerequisites' '### Prerequisites'
+}
+
+mutate_nested_page() {
+  mkdir -p "$1/wiki/nested"
+  printf '# Nested\n' > "$1/wiki/nested/Page.md"
+}
+
+mutate_missing_switch() {
+  replace_fixture_text "$1" Installation '[简体中文](Installation-zh-CN)' '简体中文'
+}
+
+mutate_missing_chinese_switch() {
+  replace_fixture_text "$1" Installation-zh-CN '[English](Installation)' 'English'
+}
+
+mutate_cross_language_link() {
+  replace_fixture_text "$1" Installation-zh-CN '](Customization-zh-CN)' '](Customization)'
+}
+
+mutate_english_cross_language_link() {
+  replace_fixture_text "$1" Installation '](Customization)' '](Customization-zh-CN)'
+}
+
+mutate_md_link() {
+  replace_fixture_text "$1" Installation '](Customization)' '](Customization.md)'
+}
+
+mutate_unknown_link() {
+  replace_fixture_text "$1" Installation '](Customization)' '](Missing-Page)'
+}
+
+mutate_missing_home_english_link() {
+  replace_fixture_text "$1" Home '](Customization)' '](Installation)'
+}
+
+mutate_missing_home_chinese_link() {
+  replace_fixture_text "$1" Home-zh-CN '](Customization-zh-CN)' '](Installation-zh-CN)'
+}
+
+(
+  cd "$checker_fixture"
+  python3 scripts/check-wiki.py
+) || fail "checker rejected the repository wiki"
+
+assert_checker_rejects mixed-language 'wiki/Installation.md: legacy language marker' mutate_mixed_language
+assert_checker_rejects missing-chinese-page 'wiki/Installation.md: missing language counterpart: Installation-zh-CN' mutate_missing_chinese_page
+assert_checker_rejects missing-english-page 'wiki/Installation-zh-CN.md: missing language counterpart: Installation' mutate_missing_english_page
+assert_checker_rejects heading-mismatch 'heading-depth sequences differ' mutate_heading_mismatch
+assert_checker_rejects nested-page 'wiki/nested/Page.md:' mutate_nested_page
+assert_checker_rejects missing-switch 'missing language-switch link' mutate_missing_switch
+assert_checker_rejects missing-chinese-switch 'missing language-switch link' mutate_missing_chinese_switch
+assert_checker_rejects cross-language-link 'cross-page link must stay in the same language' mutate_cross_language_link
+assert_checker_rejects english-cross-language-link 'cross-page link must stay in the same language' mutate_english_cross_language_link
+assert_checker_rejects md-link 'cross-page link must omit .md' mutate_md_link
+assert_checker_rejects unknown-link 'cross-page link target does not exist: Missing-Page' mutate_unknown_link
+assert_checker_rejects missing-home-english-link 'wiki/Home.md: missing link to Customization' mutate_missing_home_english_link
+assert_checker_rejects missing-home-chinese-link 'wiki/Home-zh-CN.md: missing link to Customization-zh-CN' mutate_missing_home_chinese_link
 
 printf 'wiki publish test passed\n'

@@ -1,8 +1,10 @@
 name: Publish wiki
 
 # One-way mirror: wiki/*.md in this repo is the only source of truth. Every
-# push to master republishes it to the GitHub wiki, so edits made directly on
-# the wiki are overwritten on the next publish.
+# push to master validates the pages (scripts/check-wiki.py: separate English
+# and <Page>-zh-CN.md files, matching headings, same-language links) and
+# republishes them to the GitHub wiki, so edits made directly on the wiki are
+# overwritten on the next publish.
 
 on:
   push:
@@ -26,6 +28,9 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Validate wiki pages (English + Chinese pairs, links, Home navigation)
+        run: python3 scripts/check-wiki.py
 
       - name: Clone wiki repository
         env:

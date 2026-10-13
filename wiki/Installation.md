@@ -1,5 +1,7 @@
 # Installation
 
+**English** · [简体中文](Installation-zh-CN)
+
 Every install starts with the npm package. You then choose how the canvas
 gets into your pages. One of the three paths below works for any Hexo theme.
 
@@ -9,7 +11,7 @@ gets into your pages. One of the three paths below works for any Hexo theme.
 | [B. Any template (`--target`)](#b-any-template---target) | yes (one managed block) | any EJS / Nunjucks / Swig / Pug / Jade theme |
 | [C. Inject mode](#c-inject-mode-no-template-edits) | **no** | every theme, including JSX themes (Icarus) and npm-installed themes |
 
-Prefer letting Claude Code do it? Install the [Claude Code skill](AI-Skill-Usage.md).
+Prefer letting Claude Code do it? Install the [Claude Code skill](AI-Skill-Usage).
 It runs these same steps and asks for your approval before writing anything.
 
 ## Prerequisites
@@ -129,6 +131,6 @@ inside it.
 
 ## What's next
 
-- Tweak the appearance: [Customization](Customization.md)
-- Fix a blank cloud or other problems: [Troubleshooting](Troubleshooting.md)
-- Upgrade from 2.x: [Migration guide](https://github.com/D0n9X1n/hexo-tag-cloud/blob/master/docs/migration-2.x-to-3.x.md)
+- Tweak the appearance: [Customization](Customization)
+- Fix a blank cloud or other problems: [Troubleshooting](Troubleshooting)
+- Upgrade from 2.x: [Migration: v2 → v3](Migration-v2-to-v3)

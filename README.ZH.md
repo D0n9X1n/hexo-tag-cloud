@@ -69,7 +69,7 @@ npx hexo-tag-cloud install-skill            # 加 --force 可更新旧版本
 
 然后对 Claude Code 说 *“给我的 Hexo 博客加一个标签云”*。skill 会先确认插件已安装，再运行
 `npx hexo-tag-cloud inspect` 找到主题和模板，然后选择内置配方、`--target` 模板或注入模式。
-它会先展示 dry-run 的 diff，经你同意后才写入。详见 [AI-Skill-Usage](./wiki/AI-Skill-Usage.md)。
+它会先展示 dry-run 的 diff，经你同意后才写入。详见 [AI-Skill-Usage](https://github.com/D0n9X1n/hexo-tag-cloud/wiki/AI-Skill-Usage-zh-CN)。
 
 ## 如何使用
 
@@ -82,7 +82,7 @@ npx hexo-tag-cloud install-skill            # 加 --force 可更新旧版本
 | 注入模式 | 在 `_config.yml` 中设置 `tag_cloud.inject: true` | 不修改 | 所有主题 |
 
 不加 `--apply` 时，所有安装命令都只是预览。运行 `npx hexo-tag-cloud inspect`
-可以查看主题目录，以及按“像侧边栏的程度”排序的模板列表。详见 [安装](./wiki/Installation.md)。
+可以查看主题目录，以及按“像侧边栏的程度”排序的模板列表。详见 [安装](https://github.com/D0n9X1n/hexo-tag-cloud/wiki/Installation-zh-CN)。
 
 ### 命令行参数
 
@@ -131,14 +131,14 @@ tag_cloud:
   # mount: '#sidebar'                   # 注入模式下的挂载位置：CSS 选择器，按顺序取第一个匹配
 ```
 
-全部选项和示例配置见 [自定义](./wiki/Customization.md)。
+全部选项和示例配置见 [自定义](https://github.com/D0n9X1n/hexo-tag-cloud/wiki/Customization-zh-CN)。
 
 ## 文档
 
-- [Wiki 首页](./wiki/Home.md)：[安装](./wiki/Installation.md) ·
-  [自定义](./wiki/Customization.md) · [故障排查](./wiki/Troubleshooting.md) ·
-  [AI-Skill-Usage](./wiki/AI-Skill-Usage.md) · [贡献指南](./wiki/Contributing.md)
-- [从 2.x 升级](./docs/migration-2.x-to-3.x.md)
+- [Wiki 首页](https://github.com/D0n9X1n/hexo-tag-cloud/wiki/Home-zh-CN)：[安装](https://github.com/D0n9X1n/hexo-tag-cloud/wiki/Installation-zh-CN) ·
+  [自定义](https://github.com/D0n9X1n/hexo-tag-cloud/wiki/Customization-zh-CN) · [故障排查](https://github.com/D0n9X1n/hexo-tag-cloud/wiki/Troubleshooting-zh-CN) ·
+  [AI-Skill-Usage](https://github.com/D0n9X1n/hexo-tag-cloud/wiki/AI-Skill-Usage-zh-CN) · [贡献指南](https://github.com/D0n9X1n/hexo-tag-cloud/wiki/Contributing-zh-CN)
+- [从 2.x 升级](https://github.com/D0n9X1n/hexo-tag-cloud/wiki/Migration-v2-to-v3-zh-CN)
 - [版本发布](https://github.com/D0n9X1n/hexo-tag-cloud/releases)：发布说明列出已解决的 issue 和全部提交
 
 ## 反馈

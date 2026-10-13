@@ -1,5 +1,7 @@
 # Customization
 
+**English** · [简体中文](Customization-zh-CN)
+
 The `tag_cloud:` block in your site's `_config.yml` controls the cloud's
 appearance and, with `inject`, how it gets onto the page.
 
@@ -13,7 +15,7 @@ appearance and, with `inject`, how it gets onto the page.
 | `outlineColor` | `"#E2E1C1"` | CSS color | outline drawn around the active tag |
 | `maxSpeed` | `0.03` | float | upper bound on rotation speed (0–1 range, smaller = slower) |
 | `pauseOnSelected` | `true` | boolean | freeze rotation when the cursor hovers a tag |
-| `inject` | `false` | boolean | theme-agnostic mode: add the cloud to every page through Hexo's injector, no template edits (see [Installation → Inject mode](Installation.md#c-inject-mode-no-template-edits)) |
+| `inject` | `false` | boolean | theme-agnostic mode: add the cloud to every page through Hexo's injector, no template edits (see [Installation → Inject mode](Installation#c-inject-mode-no-template-edits)) |
 | `mount` | sidebar selectors of common themes | string | inject mode only: comma-separated CSS selectors, tried in order; the first match receives the cloud |
 
 Numbers that are not finite (`textHeight: 20px`) fall back to the default

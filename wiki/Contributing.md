@@ -1,5 +1,7 @@
 # Contributing
 
+**English** · [简体中文](Contributing-zh-CN)
+
 Thanks for considering a contribution! This project is held to a strict
 TDD bar (100 % c8 line/function/branch/statement coverage on the entire
 covered surface, plus a Playwright e2e suite). All PRs must keep that bar.
@@ -11,6 +13,8 @@ git clone https://github.com/D0n9X1n/hexo-tag-cloud.git
 cd hexo-tag-cloud
 npm install --no-audit --no-fund
 ```
+
+Use Node.js 20 or 22. CI runs Node 20, and c8 crashes on Node 26.
 
 ## Running the test suite
 
@@ -129,10 +133,23 @@ bash scripts/release-notes.sh v3.1.0
 
 ## Wiki
 
-`wiki/*.md` is the only source of truth. Every push to `master` runs
-`.github/workflows/publish-wiki.yml`, which mirrors it to the GitHub wiki.
-Never edit the GitHub wiki directly: those edits are overwritten on the
+`wiki/` is the only documentation folder and the only source of truth for the
+GitHub wiki. Every push to `master` runs `.github/workflows/publish-wiki.yml`,
+which validates the pages and mirrors every `wiki/*.md` file to the GitHub
+wiki. Never edit the GitHub wiki directly: those edits are overwritten on the
 next publish.
+
+Every page has two files: English `wiki/<Page>.md` and Chinese
+`wiki/<Page>-zh-CN.md`. Update both in the same change. Rules, enforced by
+`python3 scripts/check-wiki.py` in CI:
+
+- Each file starts with a language-switch link to its counterpart.
+- Both files have the same heading structure.
+- Pages link to other pages by bare page name (`Installation` from English
+  pages, `Installation-zh-CN` from Chinese pages), never by `.md` path, and
+  stay in their own language.
+- `Home` and `Home-zh-CN` link to every page in their language.
+- No subfolders: every page lives directly in `wiki/`.
 
 ## Reporting bugs
 

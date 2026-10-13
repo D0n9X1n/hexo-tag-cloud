@@ -54,7 +54,10 @@ jobs:
       - name: Release notes + issue collector tests
         run: bash scripts/test-release-notes.sh
 
-      - name: Wiki publisher test
+      - name: Wiki pages (English + Chinese pairs)
+        run: python3 scripts/check-wiki.py
+
+      - name: Wiki publisher + checker tests
         run: bash scripts/test-wiki-publish.sh
 
   e2e:
