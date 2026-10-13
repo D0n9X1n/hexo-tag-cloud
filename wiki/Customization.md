@@ -1,8 +1,7 @@
 # Customization
 
 The `tag_cloud:` block in your site's `_config.yml` controls the cloud's
-appearance. v3.0.0 supports six keys (mirroring the v2 surface plus a
-v3-only CJK font fallback):
+appearance and, with `inject`, how it gets onto the page.
 
 ## Reference
 
@@ -14,11 +13,19 @@ v3-only CJK font fallback):
 | `outlineColor` | `"#E2E1C1"` | CSS color | outline drawn around the active tag |
 | `maxSpeed` | `0.03` | float | upper bound on rotation speed (0–1 range, smaller = slower) |
 | `pauseOnSelected` | `true` | boolean | freeze rotation when the cursor hovers a tag |
+| `inject` | `false` | boolean | theme-agnostic mode: add the cloud to every page through Hexo's injector, no template edits (see [Installation → Inject mode](Installation.md#c-inject-mode-no-template-edits)) |
+| `mount` | sidebar selectors of common themes | string | inject mode only: comma-separated CSS selectors, tried in order; the first match receives the cloud |
 
-Keys outside this list are silently ignored by `lib/options.js`. The
-plugin renders only these six options through to TagCanvas; passing
-arbitrary TagCanvas keys via `_config.yml` is on the roadmap for a
-future v3.x release (see issue tracker).
+Numbers that are not finite (`textHeight: 20px`) fall back to the default
+instead of breaking the cloud; `"true"` / `"false"` strings are accepted for
+booleans. Other keys are ignored.
+
+```yaml
+# Inject the cloud into a custom container on every page:
+tag_cloud:
+  inject: true
+  mount: '#my-widgets, aside'
+```
 
 ## CJK font fallback (v3.0.0)
 
@@ -43,15 +50,11 @@ tag_cloud:
 
 ## Canvas size
 
-Canvas width / height live in your theme partial, not `_config.yml`:
-
-```html
-<canvas width="250" height="250" id="resCanvas" style="width:100%"></canvas>
-```
-
-The AI-assisted installer accepts `--canvas-width` / `--canvas-height`
-flags to set these at install time; see
-[Installation](Installation.md).
+With a managed block, the canvas size lives in the theme template. Set it
+at install time with `--canvas-width`, `--canvas-height` and
+`--canvas-style` (defaults `250`, `250`, `width: 100%;`), re-running with
+`--apply --force` to change it later. Inject mode always uses a 250×250
+canvas stretched to the container width.
 
 ## Recipes
 

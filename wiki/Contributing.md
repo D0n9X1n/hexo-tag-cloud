@@ -95,17 +95,44 @@ re-run `npm run test:server` (the unit tests assert the universe).
 
 ## Release flow (maintainers only)
 
-1. Land all PRs for the release on master.
-2. Update `CHANGELOG.md`: move `[Unreleased]` items under
-   `[X.Y.Z] — YYYY-MM-DD`.
-3. Bump `package.json#version` and (if applicable) `package.json#peerDependencies`.
-4. Confirm `demo/package.json` does NOT reference `file:..` (the release
-   workflow rejects this).
-5. `git tag vX.Y.Z && git push --tags`.
-6. The `release.yml` workflow publishes to npmjs.com (OIDC trusted
-   publisher) and GitHub Releases.
-7. The `publish-gh-packages.yml` workflow mirrors to GitHub Packages as
-   `@d0n9x1n/hexo-tag-cloud`.
+The pipeline mirrors SonicTerm's: tags are only accepted on CI-verified
+`master` commits, and the GitHub Release notes are generated from the
+commit range, so there is no CHANGELOG file to maintain.
+
+1. Land all PRs for the release on `master`. Reference issues with
+   `Fixes #N` / `Closes #N` in the PR or commit so they appear under
+   **Resolved issues** in the release notes.
+2. Bump `package.json#version` in a PR and merge it.
+3. Wait for the **Tests** run on that exact `master` commit to pass.
+4. Tag that commit and push the tag:
+   ```bash
+   git tag v3.1.0 && git push origin v3.1.0
+   ```
+5. `.github/workflows/release.yml` then:
+   - **validate-release-tag** — the commit is on `master`, its exact Tests
+     run succeeded, the tag matches `package.json`, the tarball passes
+     `build/verify-pack.js`, and the release tooling tests pass;
+   - **publish-npm** — publishes with provenance via OIDC trusted
+     publishing (`latest`, or `next` for `-rc`/`-beta` tags);
+   - **publish-github-release** — runs `scripts/release-notes.sh`, which
+     lists issues proven closed by commits/PRs in the range
+     (`scripts/release-issues.py`, revert-aware) and every commit since
+     the previous tag;
+   - **publish-github-packages** — mirrors the same version as
+     `@d0n9x1n/hexo-tag-cloud`.
+
+Preview the notes locally (needs `gh auth login` and full history):
+
+```bash
+bash scripts/release-notes.sh v3.1.0
+```
+
+## Wiki
+
+`wiki/*.md` is the only source of truth. Every push to `master` runs
+`.github/workflows/publish-wiki.yml`, which mirrors it to the GitHub wiki.
+Never edit the GitHub wiki directly: those edits are overwritten on the
+next publish.
 
 ## Reporting bugs
 

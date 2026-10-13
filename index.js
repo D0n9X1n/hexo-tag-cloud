@@ -52,11 +52,21 @@ const { renderTagCloudJs } = require('./lib/render');
  */
 function registerHexoTagCloud(hexo) {
   const log = (hexo && hexo.log) || console;
+  const initialOpts = computeOptions(hexo.config.tag_cloud);
+  const root = siteRoot(hexo.config);
+
+  // Inject mode (#48): no theme edits. Hexo's injector adds the two
+  // scripts to every page; the bootstrap mounts the canvas itself.
+  if (initialOpts.inject && hexo.extend.injector) {
+    hexo.extend.injector.register('body_end',
+      '<script src="' + root + 'js/tagcanvas.js"></script>' +
+      '<script src="' + root + 'js/tagcloud.js"></script>');
+  }
 
   hexo.extend.filter.register('after_generate', async function () {
-    const libDir   = path.join(hexo.base_dir, 'node_modules',
-                               'hexo-tag-cloud', 'lib');
-    const srcLib   = path.join(libDir, 'tagcanvas.js');
+    // Resolve TagCanvas from this package, not <site>/node_modules (#49):
+    // the scoped GitHub Packages mirror, pnpm and workspaces put it elsewhere.
+    const srcLib   = path.join(__dirname, 'lib', 'tagcanvas.js');
     const destDir  = path.join(hexo.public_dir, 'js');
     const destLib  = path.join(destDir, 'tagcanvas.js');
     const destBoot = path.join(destDir, 'tagcloud.js');
@@ -66,10 +76,41 @@ function registerHexoTagCloud(hexo) {
     await fsp.copyFile(srcLib, destLib);
 
     const opts = computeOptions(hexo.config.tag_cloud);
-    await fsp.writeFile(destBoot, renderTagCloudJs(opts));
+    const tags = opts.inject ? collectTags(hexo, root) : undefined;
+    await fsp.writeFile(destBoot, renderTagCloudJs(opts, tags));
 
     log.info('---- END COPYING TAG CLOUD FILES ----');
   });
+}
+
+/**
+ * `config.root` with exactly one trailing slash (Hexo's default is `/`).
+ *
+ * @param {object} config
+ * @returns {string}
+ */
+function siteRoot(config) {
+  const root = (config && typeof config.root === 'string' && config.root) || '/';
+  return root.endsWith('/') ? root : root + '/';
+}
+
+/**
+ * Tags that have at least one post, as `{ name, url }` with root-aware,
+ * percent-encoded URLs (CJK / Cyrillic slugs stay valid links).
+ *
+ * @param {object} hexo
+ * @param {string} root
+ * @returns {{name: string, url: string}[]}
+ */
+function collectTags(hexo, root) {
+  const query = hexo.locals && hexo.locals.get('tags');
+  if (!query) return [];
+  const list = typeof query.toArray === 'function' ? query.toArray() : query;
+  return list
+    .filter(function (tag) { return tag.length !== 0; })
+    .map(function (tag) {
+      return { name: String(tag.name), url: encodeURI(root + tag.path) };
+    });
 }
 
 module.exports = registerHexoTagCloud;

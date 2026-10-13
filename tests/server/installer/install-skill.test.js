@@ -100,7 +100,8 @@ test('runInstallSkill: copies all files to a fresh target, exit 0', async () => 
   );
   assert.equal(code, 0, 'unexpected stderr: ' + s.err());
   assert.match(s.out(), /skill installed at/);
-  assert.match(s.out(), /Restart your AI agent/);
+  assert.match(s.out(), /new Claude Code session/);
+  assert.doesNotMatch(s.out(), /Cursor|Copilot|Codex|Gemini/);
   // verify each file landed
   assert.equal(
     fs.readFileSync(path.join(target, 'SKILL.md'), 'utf8'),
@@ -132,6 +133,34 @@ test('runInstallSkill: existing non-empty target without --dry-run → exit 4', 
   assert.match(s.err(), /already exists and is non-empty/);
   // pre-existing file untouched
   assert.equal(fs.readFileSync(path.join(target, 'something.txt'), 'utf8'), 'pre-existing\n');
+});
+
+test('runInstallSkill: --force replaces a non-empty target and drops stale files', async () => {
+  const src = buildFixtureSource();
+  const target = mkTmp('force');
+  fs.writeFileSync(path.join(target, 'stale.txt'), 'old\n');
+  fs.writeFileSync(path.join(target, 'SKILL.md'), 'old skill\n');
+  const s = makeStreams();
+  const code = await runInstallSkill(
+    ['--target', target, '--force'],
+    { stdout: s.stdout, stderr: s.stderr, sourceDir: src },
+  );
+  assert.equal(code, 0, 'unexpected stderr: ' + s.err());
+  assert.equal(fs.existsSync(path.join(target, 'stale.txt')), false);
+  assert.equal(fs.readFileSync(path.join(target, 'SKILL.md'), 'utf8'), '# name\nhexo-tag-cloud\n');
+});
+
+test('runInstallSkill: refusal message points at --force', async () => {
+  const src = buildFixtureSource();
+  const target = mkTmp('refuse-hint');
+  fs.writeFileSync(path.join(target, 'x.txt'), 'x\n');
+  const s = makeStreams();
+  const code = await runInstallSkill(
+    ['--target', target],
+    { stdout: s.stdout, stderr: s.stderr, sourceDir: src },
+  );
+  assert.equal(code, 4);
+  assert.match(s.err(), /--force/);
 });
 
 test('runInstallSkill: empty existing target → ok, copies', async () => {

@@ -63,13 +63,15 @@ test('bin: install --apply against a real fixture writes the file (real-consumer
   const cwd = mkSite('apply');
   writeFile(path.join(cwd, '_config.yml'), 'theme: landscape\n');
   const partialPath = path.join(cwd, 'themes/landscape/layout/_partial/sidebar.ejs');
-  writeFile(partialPath, '<aside>w</aside>\n');
+  writeFile(partialPath, '<aside>\n  w\n</aside>\n');
 
   const r = runBin(['install', '--apply'], { cwd });
   assert.equal(r.status, 0, 'unexpected stderr: ' + r.stderr);
   assert.match(r.stdout, /wrote tag-cloud managed block/);
   const after = fs.readFileSync(partialPath, 'utf8');
   assert.match(after, /<canvas id="resCanvas"/);
+  assert.match(after, /<%- tagcloud\(\) %>/);
+  assert.match(after, /<!-- hexo-tag-cloud:end -->\n<\/aside>/);
   assert.match(after, /<!-- hexo-tag-cloud:begin -->/);
   assert.match(after, /<!-- hexo-tag-cloud:end -->/);
 });
@@ -104,7 +106,7 @@ test('bin: conflict exit 2 propagates', () => {
   assert.equal(r.status, 0);
   // user edit
   let body = fs.readFileSync(partialPath, 'utf8');
-  body = body.replace('width="500"', 'width="999"');
+  body = body.replace('width="250"', 'width="999"');
   fs.writeFileSync(partialPath, body, 'utf8');
 
   r = runBin(['install', '--apply'], { cwd });
@@ -123,6 +125,17 @@ test('bin: legacy install exit 3 propagates', () => {
 
   const r = runBin(['install'], { cwd });
   assert.equal(r.status, 3);
+});
+
+test('bin: inspect prints JSON', () => {
+  const cwd = mkSite('inspect');
+  writeFile(path.join(cwd, '_config.yml'), 'theme: landscape\n');
+  writeFile(path.join(cwd, 'themes/landscape/layout/_partial/sidebar.ejs'), '<aside></aside>\n');
+  const r = runBin(['inspect'], { cwd });
+  assert.equal(r.status, 0, r.stderr);
+  const j = JSON.parse(r.stdout);
+  assert.equal(j.theme, 'landscape');
+  assert.equal(j.candidates[0].path, 'layout/_partial/sidebar.ejs');
 });
 
 test('bin: missing partial exit 4 propagates', () => {

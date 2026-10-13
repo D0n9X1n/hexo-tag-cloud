@@ -1,206 +1,126 @@
 'use strict';
 
+// Unit tests for lib/installer/partial-emitter.js. Every engine's block
+// must render tagcloud() INSIDE the canvas and load scripts via url_for
+// (#44), so a successful install never yields an empty cloud.
+
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-const { emitManagedBlock, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT } =
-  require('../../../lib/installer/partial-emitter');
-const { resolveTheme } = require('../../../lib/installer/theme-heuristics');
+const {
+  emitManagedBlock,
+  DEFAULT_CANVAS_WIDTH,
+  DEFAULT_CANVAS_HEIGHT,
+  DEFAULT_CANVAS_STYLE,
+} = require('../../../lib/installer/partial-emitter');
+const { resolveTheme, customRecipe } = require('../../../lib/installer/theme-heuristics');
 
-// --- happy paths ---------------------------------------------------------
+const EJS = resolveTheme('landscape');
+const NJK = resolveTheme('next');
+const PUG = resolveTheme('butterfly');
 
-test('emitManagedBlock(landscape): HTML body wrapped in HTML markers', () => {
-  const out = emitManagedBlock(resolveTheme('landscape'));
-  assert.match(out, /^<!-- hexo-tag-cloud:begin -->\n/);
-  assert.match(out, /\n<!-- hexo-tag-cloud:end -->$/);
-  assert.match(out, /<canvas id="resCanvas"/);
-  assert.match(out, /width="500"/);
-  assert.match(out, /height="400"/);
-  assert.match(out, /style="margin: 0 auto;"/);
-  assert.match(out, /<script src="\/js\/tagcanvas\.js"><\/script>/);
-  assert.match(out, /<script src="\/js\/tagcloud\.js"><\/script>/);
+test('defaults: 250 x 250, width: 100%', () => {
+  assert.equal(DEFAULT_CANVAS_WIDTH, 250);
+  assert.equal(DEFAULT_CANVAS_HEIGHT, 250);
+  assert.equal(DEFAULT_CANVAS_STYLE, 'width: 100%;');
 });
 
-test('emitManagedBlock(next): swig recipe — same HTML body, HTML markers', () => {
-  const out = emitManagedBlock(resolveTheme('next'));
-  assert.match(out, /^<!-- hexo-tag-cloud:begin -->\n/);
-  assert.match(out, /<canvas id="resCanvas"/);
+test('ejs block: exact output', () => {
+  assert.equal(emitManagedBlock(EJS), [
+    '<!-- hexo-tag-cloud:begin -->',
+    '<% if (site.tags.length) { %>',
+    '<div id="myCanvasContainer" class="widget-wrap tagcloud">',
+    '  <canvas id="resCanvas" width="250" height="250" style="width: 100%;">',
+    '    <%- tagcloud() %>',
+    '  </canvas>',
+    '</div>',
+    '<script src="<%- url_for(\'/js/tagcanvas.js\') %>"></script>',
+    '<script src="<%- url_for(\'/js/tagcloud.js\') %>"></script>',
+    '<% } %>',
+    '<!-- hexo-tag-cloud:end -->',
+  ].join('\n'));
 });
 
-test('emitManagedBlock(butterfly): pug body wrapped in pug markers', () => {
-  const out = emitManagedBlock(resolveTheme('butterfly'));
-  assert.match(out, /^\/\/- hexo-tag-cloud:begin\n/);
-  assert.match(out, /\n\/\/- hexo-tag-cloud:end$/);
-  assert.match(out, /canvas#resCanvas\(width=500 height=400 style='margin: 0 auto;'\)/);
-  assert.match(out, /script\(src='\/js\/tagcanvas\.js'\)/);
-  assert.match(out, /script\(src='\/js\/tagcloud\.js'\)/);
-  assert.equal(out.indexOf('<canvas'), -1, 'pug body must NOT contain HTML <canvas>');
+test('njk block: guarded, tagcloud() | safe inside canvas, url_for scripts', () => {
+  const out = emitManagedBlock(NJK);
+  const lines = out.split('\n');
+  assert.equal(lines[0], '<!-- hexo-tag-cloud:begin -->');
+  assert.equal(lines[1], '{% if site.tags.length %}');
+  assert.equal(lines[4], '    {{ tagcloud() | safe }}');
+  assert.ok(out.includes('<script src="{{ url_for(\'/js/tagcanvas.js\') }}"></script>'));
+  assert.ok(out.includes('<script src="{{ url_for(\'/js/tagcloud.js\') }}"></script>'));
+  assert.equal(lines[lines.length - 2], '{% endif %}');
+  assert.equal(lines[lines.length - 1], '<!-- hexo-tag-cloud:end -->');
 });
 
-test('emitManagedBlock(icarus): ejs recipe', () => {
-  const out = emitManagedBlock(resolveTheme('icarus'));
-  assert.match(out, /<canvas id="resCanvas"/);
-  assert.match(out, /^<!-- hexo-tag-cloud:begin -->/);
+test('pug block: exact output at column 0 with //- markers', () => {
+  assert.equal(emitManagedBlock(PUG), [
+    '//- hexo-tag-cloud:begin',
+    'if site.tags.length',
+    '  #myCanvasContainer.card-widget.tagcloud',
+    "    canvas#resCanvas(width='250' height='250' style='width: 100%;')",
+    '      != tagcloud()',
+    "  script(src=url_for('/js/tagcanvas.js'))",
+    "  script(src=url_for('/js/tagcloud.js'))",
+    '//- hexo-tag-cloud:end',
+  ].join('\n'));
 });
 
-test('emitManagedBlock(fluid): ejs recipe', () => {
-  const out = emitManagedBlock(resolveTheme('fluid'));
-  assert.match(out, /<canvas id="resCanvas"/);
+test('no engine hard-codes a root-relative /js/ src (sub-path deploys)', () => {
+  for (const r of [EJS, NJK, PUG]) {
+    const out = emitManagedBlock(r);
+    assert.doesNotMatch(out, /src="\/js\//);
+    assert.doesNotMatch(out, /src='\/js\//);
+    assert.match(out, /tagcloud\(\)/);
+    assert.match(out, /myCanvasContainer/);
+  }
 });
 
-test('emitManagedBlock(generic): standalone-mode recipe still emits a valid HTML block', () => {
-  const out = emitManagedBlock(resolveTheme('generic'));
-  assert.match(out, /<canvas id="resCanvas"/);
-  assert.match(out, /^<!-- hexo-tag-cloud:begin -->/);
+test('custom recipe engines route to the right body (swig → nunjucks, jade → pug)', () => {
+  assert.match(emitManagedBlock(customRecipe('a.swig')), /\{\{ tagcloud\(\) \| safe \}\}/);
+  assert.match(emitManagedBlock(customRecipe('a.jade')), /!= tagcloud\(\)/);
+  assert.match(emitManagedBlock(customRecipe('a.ejs')), /<%- tagcloud\(\) %>/);
 });
 
-// --- snapshot lock (byte stability) --------------------------------------
-
-const LANDSCAPE_DEFAULT_SNAPSHOT = [
-  '<!-- hexo-tag-cloud:begin -->',
-  '<canvas id="resCanvas" width="500" height="400" style="margin: 0 auto;"></canvas>',
-  '<script src="/js/tagcanvas.js"></script>',
-  '<script src="/js/tagcloud.js"></script>',
-  '<!-- hexo-tag-cloud:end -->',
-].join('\n');
-
-test('emitManagedBlock(landscape) is byte-stable (snapshot lock)', () => {
-  const out = emitManagedBlock(resolveTheme('landscape'));
-  assert.equal(out, LANDSCAPE_DEFAULT_SNAPSHOT,
-    'emitted block diverged from snapshot — adjust deliberately and update this lock');
+test('canvas overrides: numbers, numeric strings, rounding, literal 0', () => {
+  assert.match(emitManagedBlock(EJS, { canvasWidth: 300, canvasHeight: '180' }),
+    /width="300" height="180"/);
+  assert.match(emitManagedBlock(EJS, { canvasWidth: 199.6 }), /width="200"/);
+  assert.match(emitManagedBlock(EJS, { canvasWidth: 0 }), /width="0"/);
 });
 
-const BUTTERFLY_DEFAULT_SNAPSHOT = [
-  '//- hexo-tag-cloud:begin',
-  "canvas#resCanvas(width=500 height=400 style='margin: 0 auto;')",
-  "script(src='/js/tagcanvas.js')",
-  "script(src='/js/tagcloud.js')",
-  '//- hexo-tag-cloud:end',
-].join('\n');
-
-test('emitManagedBlock(butterfly) is byte-stable (snapshot lock)', () => {
-  const out = emitManagedBlock(resolveTheme('butterfly'));
-  assert.equal(out, BUTTERFLY_DEFAULT_SNAPSHOT);
+test('canvas overrides: empty, null, NaN, negative, Infinity → defaults', () => {
+  for (const bad of ['', null, undefined, 'abc', -5, Infinity]) {
+    assert.match(emitManagedBlock(EJS, { canvasWidth: bad, canvasHeight: bad }),
+      /width="250" height="250"/, String(bad));
+  }
 });
 
-// --- option overrides ----------------------------------------------------
-
-test('canvasWidth / canvasHeight / canvasStyle overrides take effect', () => {
-  const out = emitManagedBlock(resolveTheme('landscape'), {
-    canvasWidth: 800,
-    canvasHeight: 600,
-    canvasStyle: 'background: #000;',
-  });
-  assert.match(out, /width="800"/);
-  assert.match(out, /height="600"/);
-  assert.match(out, /style="background: #000;"/);
+test('canvas style override passes through and keeps %', () => {
+  assert.match(emitManagedBlock(EJS, { canvasStyle: 'margin: 0 auto; width: 90%;' }),
+    /style="margin: 0 auto; width: 90%;"/);
+  assert.match(emitManagedBlock(EJS, { canvasStyle: null }), /style="width: 100%;"/);
+  assert.match(emitManagedBlock(EJS, { canvasStyle: '' }), /style=""/);
 });
 
-test('canvasWidth: 0 emits literal 0 (regression: no || defaulting)', () => {
-  const out = emitManagedBlock(resolveTheme('landscape'), { canvasWidth: 0 });
-  assert.match(out, /width="0"/,
-    'zero-width must survive emission; mirrors B/T2 textHeight=0 fix');
+test('style sanitizer strips attribute breakers and template delimiters for every engine', () => {
+  const evil = 'a"b\'c<%= x %>{{ y }}{% z %}#{w}<script>&\\\r\nd';
+  for (const r of [EJS, NJK, PUG]) {
+    const out = emitManagedBlock(r, { canvasStyle: evil });
+    const styleLine = out.split('\n').find((l) => l.includes('resCanvas'));
+    const m = /style=["'](.*)["']/.exec(styleLine);
+    assert.ok(m, styleLine);
+    assert.doesNotMatch(m[1], /[<>"'{}#\\\r\n&]/, r.engine + ': ' + m[1]);
+    assert.equal(m[1], 'abc%= x % y % z %wscriptd');
+  }
 });
 
-test('canvasHeight: 0 emits literal 0', () => {
-  const out = emitManagedBlock(resolveTheme('landscape'), { canvasHeight: 0 });
-  assert.match(out, /height="0"/);
+test('$-patterns in style are not interpreted as backreferences', () => {
+  // `&` is stripped by the sanitizer; every `$` survives literally.
+  assert.ok(emitManagedBlock(EJS, { canvasStyle: 'x$&y$1z$$' }).includes('style="x$y$1z$$"'));
 });
 
-test('canvasStyle: empty string is preserved (no fallback)', () => {
-  const out = emitManagedBlock(resolveTheme('landscape'), { canvasStyle: '' });
-  assert.match(out, /style=""/);
-});
-
-// --- non-numeric width/height fall back -----------------------------------
-
-test('canvasWidth: "abc" (NaN) falls back to default', () => {
-  const out = emitManagedBlock(resolveTheme('landscape'), { canvasWidth: 'abc' });
-  assert.match(out, new RegExp('width="' + DEFAULT_CANVAS_WIDTH + '"'));
-});
-
-test('canvasWidth: numeric string "750" coerces to number', () => {
-  const out = emitManagedBlock(resolveTheme('landscape'), { canvasWidth: '750' });
-  assert.match(out, /width="750"/);
-});
-
-// --- escaping ------------------------------------------------------------
-
-test('special-character HTML style: double-quote escapes to &quot;', () => {
-  const out = emitManagedBlock(resolveTheme('landscape'), {
-    canvasStyle: 'margin: 0; content: "x";',
-  });
-  assert.match(out, /style="margin: 0; content: &quot;x&quot;;"/);
-});
-
-test('HTML style with literal & is escaped to &amp;', () => {
-  const out = emitManagedBlock(resolveTheme('landscape'), {
-    canvasStyle: 'background-image: url("a&b.png");',
-  });
-  assert.match(out, /&amp;/);
-  // ensure ampersand was escaped EXACTLY once (no double-escape):
-  assert.equal((out.match(/&amp;/g) || []).length, 1);
-});
-
-test('pug single-quoted style: embedded single-quote is backslash-escaped', () => {
-  const out = emitManagedBlock(resolveTheme('butterfly'), {
-    canvasStyle: "content: 'x';",
-  });
-  assert.match(out, /style='content: \\'x\\';'/);
-});
-
-test('pug attribute: backslash in style is doubled', () => {
-  const out = emitManagedBlock(resolveTheme('butterfly'), {
-    canvasStyle: 'a\\b',
-  });
-  assert.match(out, /style='a\\\\b'/);
-});
-
-test('pug attribute: newline in style is collapsed to space (defensive)', () => {
-  const out = emitManagedBlock(resolveTheme('butterfly'), {
-    canvasStyle: 'a\nb',
-  });
-  assert.match(out, /style='a b'/);
-});
-
-// --- recipe validation ---------------------------------------------------
-
-test('emitManagedBlock(null) throws TypeError', () => {
+test('invalid recipe throws', () => {
   assert.throws(() => emitManagedBlock(null), TypeError);
-});
-
-test('emitManagedBlock({}) throws TypeError on missing engine', () => {
   assert.throws(() => emitManagedBlock({}), TypeError);
-});
-
-// --- regression: $1 / $$ / $& survive in canvasStyle ---------------------
-
-test('regression: canvasStyle containing $1 is round-tripped intact (no .replace surprise)', () => {
-  const out = emitManagedBlock(resolveTheme('landscape'), { canvasStyle: 'content: "$1";' });
-  assert.match(out, /content: &quot;\$1&quot;/);
-});
-
-test('regression: canvasStyle containing $& is round-tripped intact', () => {
-  const out = emitManagedBlock(resolveTheme('landscape'), { canvasStyle: 'content: "$&";' });
-  assert.match(out, /content: &quot;\$&amp;&quot;/);
-});
-
-// --- canvasStyle null / undefined ----------------------------------------
-
-test('canvasStyle: null falls back to default', () => {
-  const out = emitManagedBlock(resolveTheme('landscape'), { canvasStyle: null });
-  assert.match(out, /style="margin: 0 auto;"/);
-});
-
-test('canvasWidth: null falls back to default', () => {
-  const out = emitManagedBlock(resolveTheme('landscape'), { canvasWidth: null });
-  assert.match(out, new RegExp('width="' + DEFAULT_CANVAS_WIDTH + '"'));
-});
-
-// --- options arg omitted entirely ----------------------------------------
-
-test('emitManagedBlock(recipe) with no options arg uses defaults', () => {
-  const out = emitManagedBlock(resolveTheme('landscape'));
-  assert.match(out, new RegExp('width="' + DEFAULT_CANVAS_WIDTH + '"'));
-  assert.match(out, new RegExp('height="' + DEFAULT_CANVAS_HEIGHT + '"'));
 });

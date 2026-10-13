@@ -1,6 +1,6 @@
 {
   "name": "hexo-tag-cloud",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "Yet, just another tag cloud plugin for hexo.",
   "homepage": "https://github.com/D0n9X1n/hexo-tag-cloud#readme",
   "keywords": [
@@ -37,6 +37,9 @@
   },
   "engines": {
     "node": ">=18"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0"
   },
   "peerDependencies": {
     "hexo": ">=5"

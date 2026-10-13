@@ -1,420 +1,180 @@
 'use strict';
 
+// Unit tests for lib/installer/apply-edit.js. Unmanaged content is never
+// replaced (#45); new blocks go before the last anchor line or are appended;
+// legacy detection covers HTML (any quoting) and pug syntax (#51).
+
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-const { computeApplyAction, NOOP_MESSAGE, renderUnifiedDiff } =
-  require('../../../lib/installer/apply-edit');
-const { resolveTheme } = require('../../../lib/installer/theme-heuristics');
+const {
+  computeApplyAction,
+  NOOP_MESSAGE,
+  LEGACY_CANVAS,
+  LEGACY_SCRIPT,
+  renderUnifiedDiff,
+} = require('../../../lib/installer/apply-edit');
+const { resolveTheme, customRecipe } = require('../../../lib/installer/theme-heuristics');
 const { emitManagedBlock } = require('../../../lib/installer/partial-emitter');
 
-const landscape = resolveTheme('landscape');
-const butterfly = resolveTheme('butterfly');
-const generic = resolveTheme('generic');
+const landscape = resolveTheme('landscape');   // before: </aside>
+const fluid = resolveTheme('fluid');           // append
+const butterfly = resolveTheme('butterfly');   // pug, append
 
-const NEW_BLOCK = emitManagedBlock(landscape);
-const NEW_BLOCK_PUG = emitManagedBlock(butterfly);
+const BLOCK = emitManagedBlock(landscape);
+const BLOCK_PUG = emitManagedBlock(butterfly);
+
+function act(existingContent, recipe, extra) {
+  return computeApplyAction(Object.assign({
+    existingContent,
+    newBlock: emitManagedBlock(recipe || landscape),
+    recipe: recipe || landscape,
+  }, extra));
+}
 
 // --- insert ---------------------------------------------------------------
 
-test('insert: empty file → kind=insert; newContent === newBlock', () => {
-  const result = computeApplyAction({
-    existingContent: '',
-    newBlock: NEW_BLOCK,
-    recipe: landscape,
-  });
-  assert.equal(result.kind, 'insert');
-  assert.equal(result.newContent, NEW_BLOCK);
+test('insert before the LAST line containing the anchor, preserving everything', () => {
+  const before = '<aside id="sidebar">\n  <aside>nested</aside>\n  <p>w</p>\n</aside>\n<footer/>\n';
+  const r = act(before);
+  assert.equal(r.kind, 'insert');
+  assert.equal(r.newContent,
+    '<aside id="sidebar">\n  <aside>nested</aside>\n  <p>w</p>\n' + BLOCK + '\n</aside>\n<footer/>\n');
+  assert.match(r.diff, /^@@ insert before line 4: <\/aside> @@\n/);
+  for (const line of BLOCK.split('\n')) assert.ok(r.diff.includes('+' + line));
 });
 
-// --- diff field on insert + force-replace (T10 fix per AC #1) -----------
-
-test('insert: action.diff is a unified diff containing every emitted line as +', () => {
-  const result = computeApplyAction({
-    existingContent: '',
-    newBlock: NEW_BLOCK,
-    recipe: landscape,
-  });
-  assert.equal(typeof result.diff, 'string');
-  assert.ok(result.diff.startsWith('--- before\n+++ after\n'),
-    'diff must use unified-diff headers');
-  assert.ok(result.diff.includes('+<canvas id="resCanvas"'),
-    'diff must include +<canvas line; got: ' + result.diff);
-  assert.ok(result.diff.includes('+<script src="/js/tagcloud.js">'),
-    'diff must include +tagcloud.js line');
-  assert.ok(result.diff.includes('+<script src="/js/tagcanvas.js">'),
-    'diff must include +tagcanvas.js line');
+test('anchor on the first line inserts at offset 0', () => {
+  const r = act('</aside>');
+  assert.equal(r.newContent, BLOCK + '\n</aside>');
+  assert.match(r.diff, /insert before line 1: <\/aside>/);
 });
 
-test('insert into non-empty content: diff still shows only the added managed block', () => {
-  const result = computeApplyAction({
-    existingContent: '<aside>existing widget</aside>\n',
-    newBlock: NEW_BLOCK,
-    recipe: landscape,
-  });
-  assert.equal(result.kind, 'insert');
-  // The diff is computed against the EMPTY before-block-state (insert
-  // means there was no block before), so the existing widget is NOT
-  // shown as removed — only the new block lines are shown as additions.
-  assert.ok(result.diff.indexOf('-<aside>') === -1,
-    'diff must NOT mark existing content as deleted on insert');
-  assert.ok(result.diff.includes('+<canvas id="resCanvas"'),
-    'diff must include the new canvas line');
+test('anchor missing → append (never drops content)', () => {
+  const r = act('<div>no sidebar</div>\n');
+  assert.equal(r.kind, 'insert');
+  assert.equal(r.newContent, '<div>no sidebar</div>\n\n' + BLOCK + '\n');
+  assert.match(r.diff, /^@@ append at end of file @@/);
 });
 
-test('force-replace: action.diff shows OLD lines as - and NEW lines as +', () => {
-  const userEdited = NEW_BLOCK.replace('width="500"', 'width="999"');
-  const result = computeApplyAction({
-    existingContent: '<aside>x</aside>\n' + userEdited + '\n',
-    newBlock: NEW_BLOCK,
-    recipe: landscape,
-    force: true,
-  });
-  assert.equal(result.kind, 'force-replace');
-  assert.equal(typeof result.diff, 'string');
-  assert.ok(result.diff.includes('-<canvas id="resCanvas" width="999"'),
-    'diff must mark the user-edited canvas line as removed; got: ' + result.diff);
-  assert.ok(result.diff.includes('+<canvas id="resCanvas" width="500"'),
-    'diff must mark the default canvas line as added');
+test('no anchor in recipe → append; adds missing trailing newline', () => {
+  const r = act('<div>tags page</div>', fluid);
+  assert.equal(r.newContent, '<div>tags page</div>\n\n' + emitManagedBlock(fluid) + '\n');
 });
 
-test('renderUnifiedDiff: exported helper is callable and produces unified-diff format', () => {
-  const out = renderUnifiedDiff('a', 'b', 'old\nold2', 'new\nnew2');
-  assert.equal(out,
-    '--- a\n+++ b\n-old\n-old2\n+new\n+new2');
-});
-
-test('insert: existing partial without markers/legacy → block is appended after a blank line', () => {
-  const existing = '<aside>existing widget</aside>\n';
-  const result = computeApplyAction({
-    existingContent: existing,
-    newBlock: NEW_BLOCK,
-    recipe: landscape,
-  });
-  assert.equal(result.kind, 'insert');
-  assert.ok(result.newContent.startsWith(existing),
-    'must preserve existing content prefix');
-  assert.ok(result.newContent.endsWith(NEW_BLOCK),
-    'newBlock must be at the end');
-  assert.match(result.newContent, /\n<!-- hexo-tag-cloud:begin -->/,
-    'block must be separated from existing content by at least one newline');
-});
-
-test('insert: existing content without trailing newline gets one before the block', () => {
-  const existing = '<aside>no trailing newline</aside>';
-  const result = computeApplyAction({
-    existingContent: existing,
-    newBlock: NEW_BLOCK,
-    recipe: landscape,
-  });
-  assert.equal(result.kind, 'insert');
-  assert.ok(result.newContent.indexOf('</aside>\n\n<!-- hexo-tag-cloud:begin -->') !== -1);
-});
-
-test('insert: standalone-mode (generic) → newContent is JUST the block', () => {
-  const block = emitManagedBlock(generic);
-  const result = computeApplyAction({
-    existingContent: '',
-    newBlock: block,
-    recipe: generic,
-  });
-  assert.equal(result.kind, 'insert');
-  assert.equal(result.newContent, block);
-});
-
-// --- noop -----------------------------------------------------------------
-
-test('noop: file already contains an exact-match managed block', () => {
-  const result = computeApplyAction({
-    existingContent: '<aside>x</aside>\n\n' + NEW_BLOCK + '\n',
-    newBlock: NEW_BLOCK,
-    recipe: landscape,
-  });
-  assert.equal(result.kind, 'noop');
-  assert.equal(result.message, NOOP_MESSAGE);
-});
-
-test('noop: byte-match check normalizes line endings (CRLF existing vs LF new)', () => {
-  const crlfBlock = NEW_BLOCK.split('\n').join('\r\n');
-  const result = computeApplyAction({
-    existingContent: '<aside>x</aside>\r\n\r\n' + crlfBlock + '\r\n',
-    newBlock: NEW_BLOCK,
-    recipe: landscape,
-  });
-  assert.equal(result.kind, 'noop',
-    'CRLF-vs-LF in the existing block must not trigger a false conflict');
-});
-
-// --- conflict -------------------------------------------------------------
-
-test('conflict: existing managed block has user edits, force=false → kind=conflict, exitCode=2', () => {
-  const userEdited = NEW_BLOCK.replace('width="500"', 'width="999"');
-  const result = computeApplyAction({
-    existingContent: '<aside>x</aside>\n\n' + userEdited + '\n',
-    newBlock: NEW_BLOCK,
-    recipe: landscape,
-  });
-  assert.equal(result.kind, 'conflict');
-  assert.equal(result.exitCode, 2);
-  assert.match(result.diff, /^---/m);
-  assert.match(result.diff, /^\+\+\+/m);
-  assert.match(result.diff, /-.*width="999"/);
-  assert.match(result.diff, /\+.*width="500"/);
-});
-
-test('conflict: file containing ONLY markers (no body) → conflict (newBlock has body)', () => {
-  const onlyMarkers = '<!-- hexo-tag-cloud:begin -->\n<!-- hexo-tag-cloud:end -->';
-  const result = computeApplyAction({
-    existingContent: onlyMarkers,
-    newBlock: NEW_BLOCK,
-    recipe: landscape,
-  });
-  assert.equal(result.kind, 'conflict');
-  assert.equal(result.exitCode, 2);
-});
-
-test('conflict: file containing ONLY markers + newBlock = ONLY markers → noop', () => {
-  const onlyMarkers = '<!-- hexo-tag-cloud:begin -->\n<!-- hexo-tag-cloud:end -->';
-  const result = computeApplyAction({
-    existingContent: onlyMarkers,
-    newBlock: onlyMarkers,
-    recipe: landscape,
-  });
-  assert.equal(result.kind, 'noop');
-});
-
-// --- force-replace --------------------------------------------------------
-
-test('force-replace: user-edited body, force=true → kind=force-replace, file rebuilt', () => {
-  const userEdited = NEW_BLOCK.replace('width="500"', 'width="999"');
-  const existing = '<aside>x</aside>\n\n' + userEdited + '\n';
-  const result = computeApplyAction({
-    existingContent: existing,
-    newBlock: NEW_BLOCK,
-    recipe: landscape,
-    force: true,
-  });
-  assert.equal(result.kind, 'force-replace');
-  assert.match(result.newContent, /<aside>x<\/aside>/, 'preserves surrounding content');
-  assert.match(result.newContent, /width="500"/, 'replaces user edit with new value');
-  assert.equal(result.newContent.indexOf('width="999"'), -1, 'user edit must be gone');
-});
-
-test('force-replace does NOT trigger when block is already exact match (still noop)', () => {
-  const result = computeApplyAction({
-    existingContent: NEW_BLOCK,
-    newBlock: NEW_BLOCK,
-    recipe: landscape,
-    force: true,
-  });
-  assert.equal(result.kind, 'noop');
-});
-
-test('force has no effect on insert path (no existing markers)', () => {
-  const result = computeApplyAction({
-    existingContent: '<aside>x</aside>\n',
-    newBlock: NEW_BLOCK,
-    recipe: landscape,
-    force: true,
-  });
-  assert.equal(result.kind, 'insert');
-});
-
-// --- legacy ---------------------------------------------------------------
-
-test('legacy: file without markers but with all 3 legacy strings → kind=legacy, exitCode=3', () => {
-  const existing =
-    '<canvas id="resCanvas" width="500" height="400"></canvas>\n' +
-    '<script src="/js/tagcanvas.js"></script>\n' +
-    '<script src="/js/tagcloud.js"></script>\n';
-  const result = computeApplyAction({
-    existingContent: existing,
-    newBlock: NEW_BLOCK,
-    recipe: landscape,
-  });
-  assert.equal(result.kind, 'legacy');
-  assert.equal(result.exitCode, 3);
-  assert.match(result.message, /legacy/);
-  assert.match(result.message, /Remove the existing block manually/);
-});
-
-test('legacy detection requires ALL THREE strings: missing tagcloud.js → insert', () => {
-  const partial =
-    '<canvas id="resCanvas" width="500"></canvas>\n' +
-    '<script src="/js/tagcanvas.js"></script>\n';
-  const result = computeApplyAction({
-    existingContent: partial,
-    newBlock: NEW_BLOCK,
-    recipe: landscape,
-  });
-  assert.equal(result.kind, 'insert',
-    'one missing string → fall through to insert (not legacy)');
-});
-
-test('legacy detection requires ALL THREE: missing id="resCanvas" → insert', () => {
-  const partial =
-    '<script src="/js/tagcanvas.js"></script>\n' +
-    '<script src="/js/tagcloud.js"></script>\n';
-  const result = computeApplyAction({
-    existingContent: partial,
-    newBlock: NEW_BLOCK,
-    recipe: landscape,
-  });
-  assert.equal(result.kind, 'insert');
-});
-
-test('markers take precedence over legacy detection (markers found → never check legacy triple)', () => {
-  const both =
-    '<canvas id="resCanvas"></canvas>' +
-    '<script src="/js/tagcloud.js"></script>' +
-    '<script src="/js/tagcanvas.js"></script>\n' +
-    NEW_BLOCK;
-  const result = computeApplyAction({
-    existingContent: both,
-    newBlock: NEW_BLOCK,
-    recipe: landscape,
-  });
-  assert.equal(result.kind, 'noop',
-    'with markers present, behaviour is noop (or conflict) — never legacy');
-});
-
-// --- marker recognition with surrounding whitespace ----------------------
-
-test('markers: recognised even with extra leading whitespace on the marker line', () => {
-  const existing =
-    '<aside>x</aside>\n' +
-    '    <!-- hexo-tag-cloud:begin -->\n' +
-    '    <canvas id="resCanvas"></canvas>\n' +
-    '    <!-- hexo-tag-cloud:end -->\n';
-  const result = computeApplyAction({
-    existingContent: existing,
-    newBlock: NEW_BLOCK,
-    recipe: landscape,
-  });
-  // body differs from new block → conflict (not insert): proves markers were found
-  assert.equal(result.kind, 'conflict');
-});
-
-// --- CRLF write-back preservation ----------------------------------------
-
-test('CRLF write-back: insert into CRLF file → newContent uses \\r\\n', () => {
-  const existing = '<aside>line1</aside>\r\n<aside>line2</aside>\r\n';
-  const result = computeApplyAction({
-    existingContent: existing,
-    newBlock: NEW_BLOCK,
-    recipe: landscape,
-  });
-  assert.equal(result.kind, 'insert');
-  // every \n in result must be preceded by \r
-  const loneLf = result.newContent.match(/(?<!\r)\n/g);
-  assert.equal(loneLf, null,
-    'CRLF-authored file must remain CRLF after insert; found bare \\n');
-});
-
-test('CRLF write-back: force-replace on CRLF file → newContent uses \\r\\n', () => {
-  const crlfBlock = NEW_BLOCK.split('\n').join('\r\n');
-  const userEdited = crlfBlock.replace('width="500"', 'width="999"');
-  const existing = '<aside>x</aside>\r\n\r\n' + userEdited + '\r\n';
-  const result = computeApplyAction({
-    existingContent: existing,
-    newBlock: NEW_BLOCK,
-    recipe: landscape,
-    force: true,
-  });
-  assert.equal(result.kind, 'force-replace');
-  const loneLf = result.newContent.match(/(?<!\r)\n/g);
-  assert.equal(loneLf, null,
-    'CRLF-authored file must remain CRLF after force-replace');
-  assert.match(result.newContent, /width="500"/);
-});
-
-test('LF write-back: LF file stays LF after insert', () => {
-  const existing = '<aside>x</aside>\n';
-  const result = computeApplyAction({
-    existingContent: existing,
-    newBlock: NEW_BLOCK,
-    recipe: landscape,
-  });
-  assert.equal(result.kind, 'insert');
-  assert.equal(result.newContent.indexOf('\r'), -1, 'no \\r should appear in LF output');
-});
-
-// --- pug recipe ----------------------------------------------------------
-
-test('pug recipe: noop with pug-marker block', () => {
-  const result = computeApplyAction({
-    existingContent: 'p existing\n\n' + NEW_BLOCK_PUG + '\n',
-    newBlock: NEW_BLOCK_PUG,
-    recipe: butterfly,
-  });
-  assert.equal(result.kind, 'noop');
-});
-
-test('pug recipe: conflict with edited pug-marker block', () => {
-  const userEdited = NEW_BLOCK_PUG.replace('width=500', 'width=999');
-  const result = computeApplyAction({
-    existingContent: 'p existing\n\n' + userEdited + '\n',
-    newBlock: NEW_BLOCK_PUG,
-    recipe: butterfly,
-  });
-  assert.equal(result.kind, 'conflict');
-});
-
-// --- argument validation -------------------------------------------------
-
-test('throws on missing args object', () => {
-  assert.throws(() => computeApplyAction(null), TypeError);
-  assert.throws(() => computeApplyAction(undefined), TypeError);
-  assert.throws(() => computeApplyAction('nope'), TypeError);
-});
-
-test('throws on missing/empty newBlock', () => {
-  assert.throws(() => computeApplyAction({
-    existingContent: '',
-    newBlock: '',
-    recipe: landscape,
-  }), TypeError);
-  assert.throws(() => computeApplyAction({
-    existingContent: '',
-    newBlock: undefined,
-    recipe: landscape,
-  }), TypeError);
-});
-
-test('throws on missing recipe', () => {
-  assert.throws(() => computeApplyAction({
-    existingContent: '',
-    newBlock: NEW_BLOCK,
-    recipe: null,
-  }), TypeError);
-  assert.throws(() => computeApplyAction({
-    existingContent: '',
-    newBlock: NEW_BLOCK,
-    recipe: { engine: 'ejs' },  // no markers
-  }), TypeError);
+test('empty file → block + newline', () => {
+  const r = act('', fluid);
+  assert.equal(r.newContent, emitManagedBlock(fluid) + '\n');
 });
 
 test('non-string existingContent is treated as empty', () => {
-  const result = computeApplyAction({
-    existingContent: undefined,
-    newBlock: NEW_BLOCK,
-    recipe: landscape,
-  });
-  assert.equal(result.kind, 'insert');
-  assert.equal(result.newContent, NEW_BLOCK);
+  const r = act(undefined, fluid);
+  assert.equal(r.newContent, emitManagedBlock(fluid) + '\n');
 });
 
-// --- unmatched end marker (defensive) ------------------------------------
+test('custom recipe with empty anchor appends', () => {
+  const recipe = customRecipe('a.ejs', '');
+  const r = act('x\n', recipe);
+  assert.match(r.diff, /append at end of file/);
+});
 
-test('start marker present but end marker missing → fall through to insert (not conflict)', () => {
-  const broken = '<!-- hexo-tag-cloud:begin -->\n<canvas></canvas>\n';
-  const result = computeApplyAction({
-    existingContent: broken,
-    newBlock: NEW_BLOCK,
-    recipe: landscape,
-  });
-  // No closing marker → no managed-block span → insert (which appends).
-  // This is the intentionally safe choice: don't try to repair a broken
-  // marker pair; let the user clean up.
-  assert.equal(result.kind, 'insert');
+test('pug block appended at column 0 to an existing pug widget', () => {
+  const existing = 'if theme.aside.card_tags.enable\n  .card-widget\n';
+  const r = act(existing, butterfly);
+  assert.equal(r.newContent, existing + '\n' + BLOCK_PUG + '\n');
+});
+
+test('$-patterns in existing content survive the splice', () => {
+  const existing = '<p>$& $1 $$</p>\n</aside>\n';
+  const r = act(existing);
+  assert.ok(r.newContent.startsWith('<p>$& $1 $$</p>\n'));
+});
+
+// --- EOL handling ----------------------------------------------------------
+
+test('CRLF file: inserted block uses CRLF', () => {
+  const r = act('<aside>\r\n<p>w</p>\r\n</aside>\r\n');
+  assert.equal(r.newContent,
+    '<aside>\r\n<p>w</p>\r\n' + BLOCK.split('\n').join('\r\n') + '\r\n</aside>\r\n');
+});
+
+test('mixed EOLs pick the dominant one (LF wins ties)', () => {
+  const r = act('a\r\nb\nc\n', fluid);
+  assert.ok(!r.newContent.includes(emitManagedBlock(fluid).split('\n').join('\r\n')));
+});
+
+// --- existing managed block -------------------------------------------------
+
+test('noop when the managed block is identical (CRLF-insensitive)', () => {
+  const existing = '<aside>\r\n' + BLOCK.split('\n').join('\r\n') + '\r\n</aside>\r\n';
+  const r = act(existing);
+  assert.deepEqual(r, { kind: 'noop', message: NOOP_MESSAGE });
+});
+
+test('edited managed block → conflict exit 2 with diff; file content untouched', () => {
+  const edited = BLOCK.replace('width="250"', 'width="999"');
+  const r = act('<aside>\n' + edited + '\n</aside>\n');
+  assert.equal(r.kind, 'conflict');
+  assert.equal(r.exitCode, 2);
+  assert.match(r.diff, /^--- before\n\+\+\+ after\n/);
+  assert.match(r.diff, /-.*width="999"/);
+  assert.match(r.diff, /\+.*width="250"/);
+  assert.equal(r.newContent, undefined);
+});
+
+test('--force replaces only the managed block, keeping CRLF and surroundings', () => {
+  const edited = BLOCK.replace('width="250"', 'width="999"').split('\n').join('\r\n');
+  const existing = 'top\r\n' + edited + '\r\nbottom\r\n';
+  const r = act(existing, landscape, { force: true });
+  assert.equal(r.kind, 'force-replace');
+  assert.equal(r.newContent, 'top\r\n' + BLOCK.split('\n').join('\r\n') + '\r\nbottom\r\n');
+  assert.match(r.diff, /width="999"/);
+});
+
+test('start marker without end marker is not a managed block (insert)', () => {
+  const r = act('<!-- hexo-tag-cloud:begin -->\n</aside>\n');
+  assert.equal(r.kind, 'insert');
+});
+
+// --- legacy detection -----------------------------------------------------
+
+test('legacy: HTML double-quoted id + tagcloud.js', () => {
+  const r = act('<canvas id="resCanvas"></canvas>\n<script src="/js/tagcloud.js"></script>\n</aside>\n');
+  assert.equal(r.kind, 'legacy');
+  assert.equal(r.exitCode, 3);
+  assert.match(r.message, /legacy hexo-tag-cloud install/);
+});
+
+test('legacy: single-quoted id and url_for() script', () => {
+  const r = act("<canvas id='resCanvas'></canvas>\n<script src=\"<%- url_for('/js/tagcanvas.js') %>\"></script>\n");
+  assert.equal(r.kind, 'legacy');
+});
+
+test('legacy: pug canvas#resCanvas', () => {
+  const r = act("canvas#resCanvas(width='200')\nscript(src='/js/tagcloud.js')\n", butterfly);
+  assert.equal(r.kind, 'legacy');
+});
+
+test('not legacy: canvas without plugin script, or script without canvas', () => {
+  assert.equal(act('<canvas id="resCanvas"></canvas>\n</aside>\n').kind, 'insert');
+  assert.equal(act('<script src="/js/tagcloud.js"></script>\n</aside>\n').kind, 'insert');
+  assert.ok(LEGACY_CANVAS.test('id = "resCanvas"'));
+  assert.ok(LEGACY_SCRIPT.test('js/tagcanvas.js'));
+});
+
+// --- argument validation --------------------------------------------------
+
+test('throws on bad arguments', () => {
+  assert.throws(() => computeApplyAction(), TypeError);
+  assert.throws(() => computeApplyAction('x'), TypeError);
+  assert.throws(() => computeApplyAction({ existingContent: '', newBlock: '', recipe: landscape }), TypeError);
+  assert.throws(() => computeApplyAction({ existingContent: '', newBlock: 1, recipe: landscape }), TypeError);
+  assert.throws(() => computeApplyAction({ existingContent: '', newBlock: BLOCK, recipe: null }), TypeError);
+  assert.throws(() => computeApplyAction({ existingContent: '', newBlock: BLOCK, recipe: { markerStart: 'x' } }), TypeError);
+});
+
+// --- renderUnifiedDiff ----------------------------------------------------
+
+test('renderUnifiedDiff prefixes every line', () => {
+  assert.equal(renderUnifiedDiff('a', 'b', 'x\ny', 'z'), '--- a\n+++ b\n-x\n-y\n+z');
 });

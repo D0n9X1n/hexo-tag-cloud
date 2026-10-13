@@ -1,19 +1,4 @@
 <aside id="sidebar">
-  <% if (site.tags.length) { %>
-    <div class="widget tagcloud">
-      <h3>Tag cloud</h3>
-      <!-- hexo-tag-cloud BEGIN -->
-      <script type="text/javascript" charset="utf-8" src="<%- url_for('/js/tagcloud.js') %>"></script>
-      <script type="text/javascript" charset="utf-8" src="<%- url_for('/js/tagcanvas.js') %>"></script>
-      <div id="myCanvasContainer" class="widget tagcloud">
-        <canvas width="250" height="250" id="resCanvas" style="margin: 0 auto; width: 100%;">
-          <%- tagcloud() %>
-        </canvas>
-      </div>
-      <!-- hexo-tag-cloud END -->
-    </div>
-  <% } %>
-
   <% if (site.posts.length) { %>
     <div class="widget recent-posts">
       <h3>Recent posts</h3>
@@ -24,4 +9,15 @@
       </ul>
     </div>
   <% } %>
+<!-- hexo-tag-cloud:begin -->
+<% if (site.tags.length) { %>
+<div id="myCanvasContainer" class="widget-wrap tagcloud">
+  <canvas id="resCanvas" width="250" height="250" style="width: 100%;">
+    <%- tagcloud() %>
+  </canvas>
+</div>
+<script src="<%- url_for('/js/tagcanvas.js') %>"></script>
+<script src="<%- url_for('/js/tagcloud.js') %>"></script>
+<% } %>
+<!-- hexo-tag-cloud:end -->
 </aside>

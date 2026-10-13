@@ -89,8 +89,10 @@ test('installer (a): dry-run prints diff containing canvas + tagcloud scripts', 
   // Dry-run must print a unified diff containing the canvas + plugin
   // script tags so the user (or AI agent) can review BEFORE --apply.
   expect(r.stdout, 'dry-run must include canvas tag in the diff').toContain('<canvas id="resCanvas"');
-  expect(r.stdout, 'dry-run must include /js/tagcloud.js in the diff').toContain('/js/tagcloud.js');
-  expect(r.stdout, 'dry-run must include /js/tagcanvas.js in the diff').toContain('/js/tagcanvas.js');
+  expect(r.stdout, 'dry-run must render tagcloud() inside the canvas').toContain('<%- tagcloud() %>');
+  expect(r.stdout, 'dry-run must load tagcloud.js via url_for').toContain("url_for('/js/tagcloud.js')");
+  expect(r.stdout, 'dry-run must load tagcanvas.js via url_for').toContain("url_for('/js/tagcanvas.js')");
+  expect(r.stdout, 'dry-run must insert inside the sidebar').toMatch(/insert before line \d+: <\/aside>/);
   expect(r.stdout, 'dry-run summary should mention target path').toContain(SIDEBAR_REL);
   expect(r.stdout).toMatch(/dry-run.*would write/);
 
@@ -106,10 +108,12 @@ test('installer (a-bis): `--apply` writes the canvas + script tags into sidebar.
   expect(r.status, 'expected exit 0; stderr: ' + r.stderr).toBe(0);
   const after = fs.readFileSync(path.join(tmp, SIDEBAR_REL), 'utf8');
   expect(after).toContain('<canvas id="resCanvas"');
-  expect(after).toContain('/js/tagcloud.js');
-  expect(after).toContain('/js/tagcanvas.js');
+  expect(after).toContain('<%- tagcloud() %>');
+  expect(after).toContain("url_for('/js/tagcloud.js')");
+  expect(after).toContain("url_for('/js/tagcanvas.js')");
   expect(after).toMatch(/<!-- hexo-tag-cloud:begin -->/);
-  expect(after).toMatch(/<!-- hexo-tag-cloud:end -->/);
+  // The block lands INSIDE the sidebar, not after </aside>.
+  expect(after).toMatch(/<!-- hexo-tag-cloud:end -->\n<\/aside>/);
 });
 
 // =================================================================== (c) idempotent
@@ -138,7 +142,7 @@ test('installer (d): editing the managed block then re-running --apply exits 2',
   const sidebarPath = path.join(tmp, SIDEBAR_REL);
   let body = fs.readFileSync(sidebarPath, 'utf8');
   // Mutate the canvas width inside the managed block
-  body = body.replace('width="500"', 'width="999"');
+  body = body.replace('width="250"', 'width="999"');
   expect(body).toContain('width="999"');
   fs.writeFileSync(sidebarPath, body, 'utf8');
 
@@ -162,14 +166,14 @@ test('installer (e): same case re-run with --apply --force overwrites the user e
 
   const sidebarPath = path.join(tmp, SIDEBAR_REL);
   let body = fs.readFileSync(sidebarPath, 'utf8');
-  body = body.replace('width="500"', 'width="999"');
+  body = body.replace('width="250"', 'width="999"');
   fs.writeFileSync(sidebarPath, body, 'utf8');
 
   const r2 = runBin(['install', '--apply', '--force'], tmp);
   expect(r2.status, 'expected --force success; stderr: ' + r2.stderr).toBe(0);
   const afterForce = fs.readFileSync(sidebarPath, 'utf8');
   expect(afterForce).not.toContain('width="999"');
-  expect(afterForce).toContain('width="500"');
+  expect(afterForce).toContain('width="250"');
 });
 
 // =================================================================== (f) install-skill dry-run
@@ -234,5 +238,72 @@ test.describe('installer (b) — real-consumer integration', () => {
       'expected /js/tagcloud.js in: ' + JSON.stringify(scripts)).toBe(true);
     expect(scripts.some((s) => /\/js\/tagcanvas\.js$/.test(s)),
       'expected /js/tagcanvas.js in: ' + JSON.stringify(scripts)).toBe(true);
+  });
+
+  test('installed canvas contains the tag links TagCanvas renders (#44)', async ({ page }) => {
+    await page.goto(serverHandle.url + '/');
+    const links = await page.locator('#resCanvas a').evaluateAll(
+      (els) => els.map((el) => el.textContent.trim()));
+    for (const tag of ['intro', 'landscape', 'install-cli']) {
+      expect(links, 'expected tag link "' + tag + '" inside #resCanvas').toContain(tag);
+    }
+    expect(await page.locator('#sidebar #myCanvasContainer').count(),
+      'cloud must render inside the sidebar').toBe(1);
+  });
+});
+
+// =================================================================== (g) inject mode
+
+test.describe('inject mode (#48) — no installer run, no template edits', () => {
+  test.setTimeout(180000);
+
+  let tmpDir;
+  let serverHandle;
+
+  test.beforeAll(async () => {
+    const { ensureFixtureInstalled } = require('../helpers/ensureFixtureInstalled');
+    const { generateSite } = require('../helpers/generateSite');
+    const { serveSite } = require('../helpers/serveSite');
+
+    tmpDir = makeTmpFixture('inject');
+    fs.appendFileSync(path.join(tmpDir, '_config.yml'),
+      '\ntag_cloud:\n  inject: true\n');
+    await ensureFixtureInstalled(tmpDir);
+    const { publicDir } = await generateSite({ cwd: tmpDir });
+    serverHandle = await serveSite({ root: publicDir });
+  });
+
+  test.afterAll(async () => {
+    if (serverHandle && typeof serverHandle.close === 'function') {
+      await serverHandle.close();
+    }
+  });
+
+  test('theme templates are untouched', () => {
+    const before = fs.readFileSync(path.join(FIXTURE_SRC, SIDEBAR_REL), 'utf8');
+    const after = fs.readFileSync(path.join(tmpDir, SIDEBAR_REL), 'utf8');
+    expect(after).toBe(before);
+  });
+
+  test('generated tagcloud.js carries the tag list', () => {
+    const js = fs.readFileSync(path.join(tmpDir, 'public/js/tagcloud.js'), 'utf8');
+    for (const tag of ['intro', 'landscape', 'install-cli']) {
+      expect(js).toContain('"name":"' + tag + '"');
+    }
+  });
+
+  test('every page loads the scripts and the cloud mounts into the sidebar', async ({ page }) => {
+    const errors = [];
+    page.on('pageerror', (e) => errors.push(String(e)));
+    await page.goto(serverHandle.url + '/');
+    const scripts = await page.locator('script[src]').evaluateAll(
+      (els) => els.map((el) => el.getAttribute('src')));
+    expect(scripts).toContain('/js/tagcanvas.js');
+    expect(scripts).toContain('/js/tagcloud.js');
+    await expect(page.locator('#sidebar #myCanvasContainer #resCanvas')).toHaveCount(1);
+    const links = await page.locator('#resCanvas a').evaluateAll(
+      (els) => els.map((el) => el.textContent));
+    expect(links).toContain('intro');
+    expect(errors, 'no page errors: ' + errors.join('\n')).toEqual([]);
   });
 });

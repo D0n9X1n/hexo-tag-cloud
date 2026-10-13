@@ -42,6 +42,21 @@ jobs:
           path: coverage/
           retention-days: 7
 
+  release-tooling:
+    # Release notes (resolved issues + commits) and the wiki mirror are
+    # tested on every push so a broken script is caught before tagging.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Release notes + issue collector tests
+        run: bash scripts/test-release-notes.sh
+
+      - name: Wiki publisher test
+        run: bash scripts/test-wiki-publish.sh
+
   e2e:
     # Sub-project A ships a single smoke spec — no shard matrix yet.
     # Sub-project D re-introduces sharding once the spec count justifies it.

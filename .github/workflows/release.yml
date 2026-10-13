@@ -1,35 +1,39 @@
-# Publishes hexo-tag-cloud to npm when a `v*` tag is pushed.
+# Release pipeline for hexo-tag-cloud, triggered by a `vX.Y.Z` tag push.
+#
+#   validate-release-tag → publish-npm ─┬→ publish-github-release
+#                                        └→ publish-github-packages
 #
 # Pre-flight (manual, before tagging):
-#   1. Update CHANGELOG.md with the release date.
-#   2. Bump `version` in `package.json` to match the tag (e.g. `v3.0.0` → `3.0.0`).
-#   3. Commit, push, then create+push the `v*` tag.
+#   1. Bump `version` in `package.json` to match the tag.
+#   2. Merge to master, wait for the Tests run on that commit to pass, then
+#      create and push the `vX.Y.Z` tag on that exact commit.
 #
-# `demo/package.json` is intentionally pinned to `"hexo-tag-cloud": "file:.."`
-# at all times. The demo is excluded from the npm tarball (verify-pack.js
-# enforces) so this never affects published consumers, and keeping it as a
-# local file: ref means the deploy-demo workflow can run on `master` without
-# waiting for npm publication (and avoids the circular dependency where the
-# demo can't build until the package it references is published).
+# There is no CHANGELOG file: the GitHub Release notes generated below are
+# the changelog.
 #
-# Auth: Trusted Publishing via OIDC.
-#   Configure the trusted publisher on npmjs.com:
-#     https://www.npmjs.com/package/hexo-tag-cloud/access
-#       → Trusted Publishers → GitHub Actions
-#       → org D0n9X1n, repo hexo-tag-cloud, workflow release.yml
-#   No long-lived NPM_TOKEN secret is required. The `id-token: write`
-#   permission below + npm CLI >= 11.5.1 + `--provenance` is enough.
+# The release never re-runs the test suite: it requires the exact master
+# commit to already have a successful Tests run, so what ships is what CI
+# verified. Release notes list the issues closed by commits/PRs in the range
+# (scripts/release-issues.py) and every commit since the previous tag
+# (scripts/release-notes.sh).
+#
+# npm auth: Trusted Publishing via OIDC (npmjs.com → package → Trusted
+# Publishers → GitHub Actions → D0n9X1n/hexo-tag-cloud, workflow release.yml).
+# No long-lived NPM_TOKEN secret. Pre-release tags (`v3.1.0-rc.1`) publish
+# under the `next` dist-tag and are marked as GitHub pre-releases.
 
-name: Release to npm
+name: Release
 
 on:
   push:
     tags:
-      - 'v*'
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
 
+# Read-only by default. Each job re-grants only what it needs, so the job that
+# talks to npm cannot write the repo and the job that writes the GitHub
+# Release cannot publish to npm.
 permissions:
   contents: read
-  id-token: write
 
 # Never cancel a half-completed publish.
 concurrency:
@@ -37,40 +41,37 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  publish:
-    name: Publish ${{ github.ref_name }}
+  validate-release-tag:
+    name: Validate release provenance and source
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-
+    permissions:
+      actions: read
+      contents: read
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          submodules: recursive
+          fetch-depth: 0
 
-      - name: Setup Node.js 20
-        uses: actions/setup-node@v4
+      - name: Verify release commit is on master
+        run: |
+          git fetch --no-tags origin "+refs/heads/master:refs/remotes/origin/master"
+          git merge-base --is-ancestor "$GITHUB_SHA" refs/remotes/origin/master
+
+      - name: Verify exact successful master Tests run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          count="$(gh api \
+            "repos/${GITHUB_REPOSITORY}/actions/workflows/test.yml/runs?branch=master&event=push&status=success&head_sha=${GITHUB_SHA}&per_page=100" \
+            --jq '[.workflow_runs[] | select(.head_sha == env.GITHUB_SHA and .conclusion == "success")] | length')"
+          if [ "$count" -lt 1 ]; then
+            echo "::error::No successful Tests run on master for ${GITHUB_SHA}; wait for CI before tagging."
+            exit 1
+          fi
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '20'
-          registry-url: 'https://registry.npmjs.org'
-
-      - name: Upgrade npm to a version that supports OIDC trusted publishing
-        # Node 20 ships with npm 10.x; trusted publishing needs >= 11.5.1.
-        run: npm install -g npm@^11
-
-      - name: Cache npm cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node20-${{ hashFiles('**/package.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node20-
-
-      - name: Install root dependencies
-        run: npm install --no-audit --no-fund
-
-      - name: Install fixture site dependencies
-        run: cd tests/fixtures/hexo-site && npm install --no-audit --no-fund && cd ../../..
 
       - name: Verify package.json version matches tag
         run: |
@@ -81,25 +82,112 @@ jobs:
             exit 1
           fi
 
-      - name: Verify CHANGELOG has dated entry for this version
-        run: |
-          TAG_VERSION=${GITHUB_REF_NAME#v}
-          if ! grep -qE "^## \[${TAG_VERSION}\] — [0-9]{4}-[0-9]{2}-[0-9]{2}" CHANGELOG.md; then
-            echo "::error::CHANGELOG.md is missing a dated entry for ${TAG_VERSION} (still 'Unreleased'?)"
-            exit 1
-          fi
-
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
-
-      - name: Run full test suite (lint + server + e2e)
-        run: npm test
-
       - name: Verify tarball contents
         run: node build/verify-pack.js
 
-      - name: Publish to npm (OIDC trusted publisher + provenance)
-        # No NODE_AUTH_TOKEN: npm detects the GitHub Actions OIDC issuer
-        # via the id-token permission above and exchanges it with the
-        # trusted publisher configured for this package on npmjs.com.
-        run: npm publish --provenance --access public
+      - name: Test release tooling
+        run: bash scripts/test-release-notes.sh
+
+  publish-npm:
+    name: Publish ${{ github.ref_name }} to npm
+    runs-on: ubuntu-latest
+    needs: [validate-release-tag]
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Upgrade npm for OIDC trusted publishing
+        # Node 20 ships with npm 10.x; trusted publishing needs >= 11.5.1.
+        run: npm install -g npm@^11
+
+      - name: Publish (skips a version that is already on npm)
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          if npm view "hexo-tag-cloud@${VERSION}" version >/dev/null 2>&1; then
+            echo "::notice::hexo-tag-cloud@${VERSION} is already on npm; skipping publish."
+            exit 0
+          fi
+          DIST_TAG=latest
+          case "$VERSION" in *-*) DIST_TAG=next ;; esac
+          npm publish --provenance --access public --tag "$DIST_TAG"
+
+  publish-github-release:
+    name: Publish GitHub Release
+    runs-on: ubuntu-latest
+    needs: [publish-npm]
+    # The only job that writes to the repository: it creates the Release.
+    permissions:
+      contents: write
+      issues: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Generate release notes (resolved issues + commits)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/release-notes.sh "${{ github.ref_name }}" > RELEASE_NOTES.md
+
+      - uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: hexo-tag-cloud ${{ github.ref_name }}
+          body_path: RELEASE_NOTES.md
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
+
+  # Mirror to GitHub Packages as @d0n9x1n/hexo-tag-cloud so the repository's
+  # Packages sidebar lists it. Runs only behind the same gates as npm.
+  publish-github-packages:
+    name: Mirror ${{ github.ref_name }} to GitHub Packages
+    runs-on: ubuntu-latest
+    needs: [publish-npm]
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write
+      packages: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '20'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@d0n9x1n'
+
+      - name: Upgrade npm for provenance
+        run: npm install -g npm@^11
+
+      - name: Publish scoped mirror (skips an existing version)
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          if npm view "@d0n9x1n/hexo-tag-cloud@${VERSION}" version >/dev/null 2>&1; then
+            echo "::notice::@d0n9x1n/hexo-tag-cloud@${VERSION} already mirrored; skipping."
+            exit 0
+          fi
+          # GitHub Packages requires the scope to match the repo owner. The
+          # runner is ephemeral; this rewrite is never committed.
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            pkg.name = '@d0n9x1n/hexo-tag-cloud';
+            pkg.publishConfig = { registry: 'https://npm.pkg.github.com', access: 'public' };
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+          "
+          node build/verify-pack.js
+          DIST_TAG=latest
+          case "$VERSION" in *-*) DIST_TAG=next ;; esac
+          npm publish --provenance --access public --tag "$DIST_TAG"

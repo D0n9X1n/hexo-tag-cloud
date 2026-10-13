@@ -142,3 +142,30 @@ test('computeOptions: all six knobs together', () => {
   assert.equal(o.maxSpeed,        0.07);
   assert.equal(o.pauseOnSelected, false);
 });
+
+// --- #50: validation of numeric / boolean knobs; #48: inject + mount ------
+
+test('computeOptions: non-finite numbers fall back to defaults instead of NaN', () => {
+  assert.equal(computeOptions({ textHeight: '20px' }).textHeight, 15);
+  assert.equal(computeOptions({ textHeight: null }).textHeight, 15);
+  assert.equal(computeOptions({ textHeight: '' }).textHeight, 15);
+  assert.equal(computeOptions({ maxSpeed: 'fast' }).maxSpeed, 0.03);
+  assert.equal(computeOptions({ textHeight: '20' }).textHeight, 20);
+});
+
+test('computeOptions: string booleans are honoured; junk falls back', () => {
+  assert.equal(computeOptions({ pauseOnSelected: 'false' }).pauseOnSelected, false);
+  assert.equal(computeOptions({ pauseOnSelected: 'true' }).pauseOnSelected, true);
+  assert.equal(computeOptions({ pauseOnSelected: 'nope' }).pauseOnSelected, true);
+});
+
+test('computeOptions: inject defaults off; mount defaults to sidebar selectors', () => {
+  const { DEFAULT_MOUNT } = require('../../lib/options');
+  const o = computeOptions({});
+  assert.equal(o.inject, false);
+  assert.equal(o.mount, DEFAULT_MOUNT);
+  assert.ok(DEFAULT_MOUNT.startsWith('#sidebar'));
+  assert.equal(computeOptions({ inject: true, mount: '.my-widget' }).mount, '.my-widget');
+  assert.equal(computeOptions({ mount: '   ' }).mount, DEFAULT_MOUNT);
+  assert.equal(computeOptions({ mount: 42 }).mount, DEFAULT_MOUNT);
+});
